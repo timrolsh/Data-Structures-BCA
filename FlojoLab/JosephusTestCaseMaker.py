@@ -42,7 +42,3 @@ def main():
         x += 1
     file.write(final_string)
     print("Done!")
-
-
-print(josephus_order(1, 2))
-print(josephus_order(1, 1))

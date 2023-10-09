@@ -10,11 +10,11 @@ template<class T>
 vector<int> loopTail(Link<T> *head) {
     int loopLength = 0;
     int tailLength = 0;
-//    edge case where a nullptr linked list is passed
+    // edge case where a nullptr linked list is passed
     if (head != nullptr) {
         Link<int> *slow = head;
         Link<int> *fast = head;
-//        first stage, determine whether the linked list is circular or not
+        // first stage, determine whether the linked list is circular or not
         slow = slow->next;
         fast = fast->next->next;
         while (fast != nullptr && fast != slow) {
@@ -26,7 +26,7 @@ vector<int> loopTail(Link<T> *head) {
                 fast = fast->next->next;
             }
         }
-//        second stage: get the length of the loop, will be skipped if the linked list is not circular and the fast pointer reached the end and is null
+        // second stage: get the length of the loop, will be skipped if the linked list is not circular and the fast pointer reached the end and is null
         if (fast != nullptr) {
             ++loopLength;
             fast = fast->next;
@@ -35,14 +35,14 @@ vector<int> loopTail(Link<T> *head) {
                 ++loopLength;
             }
         }
-//        third stage, get the tail length of the linked list
+        // third stage, get the tail length of the linked list
         slow = head;
         fast = head;
         for (int _ = 0; _ < loopLength; ++_) {
             fast = fast->next;
         }
         while (fast != nullptr) {
-//            if the list is circular and it comes back on itself, break the loop as we now have the tail length
+            // if the list is circular and it comes back on itself, break the loop as we now have the tail length
             if (slow == fast && loopLength > 0) {
                 break;
             }
@@ -56,21 +56,6 @@ vector<int> loopTail(Link<T> *head) {
     answer[1] = tailLength;
     return answer;
 }
-
-
-//string circularListToString(Link<int> *list) {
-//    Link<int> *head = list;
-//    string answer = "[";
-//    int timesSame = 0;
-//    while (timesSame < 2) {
-//        if (head == list) {
-//            ++timesSame;
-//        }
-//        answer += ""
-//    }
-//
-//
-//}
 
 /*
 Given a number n, create a circular linked list that starts with the number 1
@@ -99,7 +84,7 @@ vector<int> josephus(int n, int k) {
     int vectorIndex = 0;
     while (n > 1) {
         Link<int> *first, *remove, *second;
-//        edge case: k = 1
+        // edge case: k = 1
         if (k == 1) {
             first = tail;
         } else {
@@ -128,7 +113,7 @@ vector<int> josephus(int n, int k) {
     // linked list, and it will be head. Remove it, delete the final node, and
     // return the final vector
     removeList[vectorIndex] = head->info;
-//    at this point head will be a linked list of itself, set the next element to null so that the destructor doesn't fail
+    // at this point head will be a linked list of itself, set the next element to null so that the destructor doesn't fail
     head->next = nullptr;
     delete head;
     return removeList;
