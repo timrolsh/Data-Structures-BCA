@@ -1,0 +1,13 @@
+# Google's Style
+BasedOnStyle: Google
+# "int &foo"
+DerivePointerAlignment: false
+PointerAlignment: Right
+# 4 spaces
+TabWidth: 4
+IndentWidth: 4
+AccessModifierOffset: 0
+UseTab: Never
+Language: Cpp
+BreakBeforeBraces: Attach
+AllowShortFunctionsOnASingleLine: false
