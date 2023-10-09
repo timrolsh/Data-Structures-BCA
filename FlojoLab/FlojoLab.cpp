@@ -6,37 +6,55 @@
 using std::cout;
 using std::string;
 
-template <class T> vector<int> loopTail(Link<T> *head) {
+template<class T>
+vector<int> loopTail(Link<T> *head) {
     int loopLength = 0;
     int tailLength = 0;
-//    edge case: the circular linked list is just one node pointing to itself
-
+//    edge case where a nullptr linked list is passed
     if (head != nullptr) {
-        Link<T> *slow = head;
-        Link <T> *fast = head;
-        while (!(slow == nullptr || fast == nullptr || slow == fast)) {
+        Link<int> *slow = head;
+        Link<int> *fast = head;
+//        first stage, determine whether the linked list is circular or not
+        slow = slow->next;
+        fast = fast->next->next;
+        while (fast != nullptr && fast != slow) {
             slow = slow->next;
-            fast = fast->next;
-            if (fast != nullptr) {
-                fast = fast->next;
+            // prevent dereferencing nullptr and causing segfault
+            if (fast->next == nullptr) {
+                fast = nullptr;
+            } else {
+                fast = fast->next->next;
             }
         }
-//        now we know its circular, find the length of the list
-        if (slow == fast) {
-            fast = fast->next;
+//        second stage: get the length of the loop, will be skipped if the linked list is not circular and the fast pointer reached the end and is null
+        if (fast != nullptr) {
             ++loopLength;
+            fast = fast->next;
             while (slow != fast) {
                 fast = fast->next;
                 ++loopLength;
             }
         }
-
-
-
+//        third stage, get the tail length of the linked list
+        slow = head;
+        fast = head;
+        for (int _ = 0; _ < loopLength; ++_) {
+            fast = fast->next;
+        }
+        while (fast != nullptr) {
+//            if the list is circular and it comes back on itself, break the loop as we now have the tail length
+            if (slow == fast && loopLength > 0) {
+                break;
+            }
+            slow = slow->next;
+            fast = fast->next;
+            ++tailLength;
+        }
     }
     vector<int> answer(2);
     answer[0] = loopLength;
     answer[1] = tailLength;
+    return answer;
 }
 
 

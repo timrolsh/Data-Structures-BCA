@@ -8,5 +8,5 @@ include_directories(.)
 add_executable(FlojoLab
         FlojoLab.cpp
         FlojoLab.hpp
-        FlojoLabTester.cpp
+        JosephusTester.cpp
         JosephusTestCases.txt)
