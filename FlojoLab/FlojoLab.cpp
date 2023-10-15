@@ -6,8 +6,7 @@
 using std::cout;
 using std::string;
 
-template<class T>
-vector<int> loopTail(Link<T> *head) {
+vector<int> loopTail(Link<int> *head) {
     int loopLength = 0;
     int tailLength = 0;
     // edge case where a nullptr linked list is passed
@@ -16,7 +15,12 @@ vector<int> loopTail(Link<T> *head) {
         Link<int> *fast = head;
         // first stage, determine whether the linked list is circular or not
         slow = slow->next;
-        fast = fast->next->next;
+        // prevent dereferencing nullptr and causing segfault
+        if (fast->next == nullptr) {
+            fast = nullptr;
+        } else {
+            fast = fast->next->next;
+        }
         while (fast != nullptr && fast != slow) {
             slow = slow->next;
             // prevent dereferencing nullptr and causing segfault
@@ -49,6 +53,10 @@ vector<int> loopTail(Link<T> *head) {
             slow = slow->next;
             fast = fast->next;
             ++tailLength;
+        }
+        // edge case, if the loopLength is 0 and there is no loop, tail length also has to be 0
+        if (loopLength == 0) {
+            tailLength = 0;
         }
     }
     vector<int> answer(2);

@@ -22,7 +22,6 @@ struct Link {
     Link *next;
 };
 
-template<class T>
-vector<int> loopTail(Link<T> *head);
+vector<int> loopTail(Link<int> *head);
 
 vector<int> josephus(int n, int k);
