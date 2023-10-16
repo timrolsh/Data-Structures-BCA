@@ -54,10 +54,6 @@ vector<int> loopTail(Link<int> *head) {
             fast = fast->next;
             ++tailLength;
         }
-        // edge case, if the loopLength is 0 and there is no loop, tail length also has to be 0
-        if (loopLength == 0) {
-            tailLength = 0;
-        }
     }
     vector<int> answer(2);
     answer[0] = loopLength;
