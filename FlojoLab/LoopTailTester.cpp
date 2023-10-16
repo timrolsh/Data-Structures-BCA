@@ -16,7 +16,7 @@ int main() {
     Link<int> *l2 = new Link<int>(1);
     l2->next = new Link<int>(2);
     vector<int> t2 = loopTail(l2);
-    cout << "\tTest 2: " << (t2 == vector<int>{0, 0}) << '\n';
+    cout << "\tTest 2: " << (t2 == vector<int>{0, 2}) << '\n';
 
     // Test 3: List with loop, no tail
     Link<int> *l3 = new Link<int>(1);
@@ -37,11 +37,25 @@ int main() {
 
     Link<int> *l5 = new Link<int>(1);
     vector<int> t5 = loopTail(l5);
-    cout << "\tTest 5: " << (t5 == vector<int>{0, 0}) << '\n';
+    cout << "\tTest 5: " << (t5 == vector<int>{0, 1}) << '\n';
 
     // Test 6: Single node, self-loop
     Link<int> *l6 = new Link<int>(1);
     l6->next = l6;
     vector<int> t6 = loopTail(l6);
     cout << "\tTest 6: " << (t6 == vector<int>{1, 0}) << '\n';
+    Link<int> *l7 = new Link<int>(1);
+    l7->next = new Link<int>(2);
+    l7->next->next = l7->next;
+    vector<int> t7 = loopTail(l7);
+    cout << "\tTest 7: " << (t7 == vector<int>{1, 1}) << '\n';
+    Link<int> *l8 = new Link<int>(1);
+    l8->next = new Link<int>(2);
+    l8->next->next = new Link<int>(3);
+    l8->next->next->next = new Link<int>(4);
+    l8->next->next->next->next = new Link<int>(5);
+    l8->next->next->next->next->next = l8->next->next;
+    vector<int> t8 = loopTail(l8);
+    cout << "\tTest 8: " << (t8 == vector<int>{3, 2});
+
 }
