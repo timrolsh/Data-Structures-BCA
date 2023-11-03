@@ -12,6 +12,11 @@ for this lab.
 #ifndef POKERSORTLAB_POKERSORTLAB_H
 
 #define POKERSORTLAB_POKERSORTLAB_H
-void poker_sort(vector<int>& a);
+
+#include <vector>
+
+using std::vector;
+
+void poker_sort(vector<int> &a);
 
 #endif
