@@ -53,7 +53,7 @@ vector<int> encodeHands(const string &handString) {
 }
 
 
-void fileTester(const string& filename) {
+void fileTester(const string &filename) {
     string inFileName = filename + (string) "In.txt";
     string outFileName = filename + (string) "Out.txt";
     ifstream inFile(inFileName);
@@ -74,7 +74,7 @@ void fileTester(const string& filename) {
     auto end = high_resolution_clock::now();
     ifstream outFile(outFileName);
     int wrongCount = 0;
-    for (int i = 0; i < 1000; i++) {
+    for (int i = 0; i < handsCount; i++) {
         int currentHand;
         outFile >> currentHand;
         wrongCount += (currentHand != encodedHands[i]);
@@ -87,15 +87,14 @@ void fileTester(const string& filename) {
     if (wrongCount == 0) {
         cout << "Your code was correct. It sorted in " << duration.count() << " milliseconds.\n";
     } else {
-        cout
-                << "Your code *might've* been correct in the event of equal inFile, but it could very likely be wrongCount. There were "
-                << wrongCount << " inFile out of place, and your sort took " << duration.count() << " milliseconds.\n";
+        cout << "There were " << wrongCount << " hands out of place, and your sort took " << duration.count()
+             << " milliseconds.\n";
     }
 }
 
 int main() {
     cout << "Pokersort Lab Tester: \n\n#1: ShortOne: \n";
-    fileTester((string ) "TestCases/ShortOne");
+    fileTester((string) "TestCases/ShortOne");
 //    cout << "\n#3: ShortTwo: \n";
 //    fileTester((string ) "TestCases/ShortTwo");
 //    cout << "\n#2: LongOne: \n";
