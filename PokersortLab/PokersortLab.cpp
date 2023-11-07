@@ -5,7 +5,7 @@
 #include <string>
 
 //TODO delete later
-using std::sort;
+using std::stable_sort;
 using std::cout;
 using std::vector;
 using std::string;
@@ -376,7 +376,7 @@ vector<Hand> decodeHands(vector<int> &encodedHands) {
 
 //        sort the cards in a hand once they are created
 //TODO replace with your own sort later
-        std::sort(hand.list.begin(), hand.list.end());
+        stable_sort(hand.list.begin(), hand.list.end());
 //        determine the hand's type once it has been established
         hand.determineHandType();
         hand.s = hand.toString();
@@ -394,7 +394,7 @@ void poker_sort(vector<int> &a) {
     // main list of hands to work with
     vector<Hand> hands = decodeHands(a);
     // sort these hands. Using library sort for now, use own sort later, remember to remove imports later
-    sort(hands.begin(), hands.end());
+    stable_sort(hands.begin(), hands.end());
     for (int index = 0; index < hands.size(); ++index) {
         a[index] = hands[index].encodedHand;
     }
