@@ -1,13 +1,54 @@
+/*
+Tim Rolshud
+Data Structures Period 1
+November 7th, 2023
+*/
+
 #include <iostream>
 #include <vector>
-//TODO delete later
-#include <algorithm>
 
-//TODO delete later
-using std::stable_sort;
 using std::cout;
 using std::vector;
 using std::string;
+
+/*
+Given two sorted vectors, merge them into one sorted vector
+*/
+template<typename Type>
+vector<Type> mergeSortedVectors(vector<Type> vectorOne, vector<Type> vectorTwo) {
+    vector<Type> mergedVector(vectorOne.size() + vectorTwo.size());
+    int mergedVectorIndex = 0;
+    int vectorOneIndex = 0;
+    int vectorTwoIndex = 0;
+    while (vectorOneIndex < vectorOne.size() && vectorTwoIndex < vectorTwo.size()) {
+        if (vectorOne[vectorOneIndex] <= vectorTwo[vectorTwoIndex]) {
+            mergedVector[mergedVectorIndex++] = vectorOne[vectorOneIndex++];
+        } else {
+            mergedVector[mergedVectorIndex++] = vectorTwo[vectorTwoIndex++];
+        }
+    }
+    while (vectorOneIndex < vectorOne.size()) {
+        mergedVector[mergedVectorIndex++] = vectorOne[vectorOneIndex++];
+    }
+    while (vectorTwoIndex < vectorTwo.size()) {
+        mergedVector[mergedVectorIndex++] = vectorTwo[vectorTwoIndex++];
+    }
+    return mergedVector;
+}
+
+
+template<typename Type>
+void mergeSort(vector<Type> &list) {
+    if (list.size() <= 1) {
+        return;
+    }
+    int mid = list.size() / 2;
+    vector<Type> left(list.begin(), list.begin() + mid);
+    vector<Type> right(list.begin() + mid, list.end());
+    mergeSort(left);
+    mergeSort(right);
+    list = mergeSortedVectors(left, right);
+}
 
 enum Suit {
     CLUBS = 0, DIAMONDS = 1, HEARTS = 2, SPADES = 3
@@ -69,8 +110,8 @@ public:
     }
 
 //    operator overload for comparisons made while sorting cards in a hand
-    bool operator<(const Card &other) const {
-        return rank < other.rank;
+    bool operator<=(const Card &other) const {
+        return rank <= other.rank;
     }
 
     bool operator==(const Card &other) const {
@@ -145,7 +186,7 @@ public:
             int count = rankCounts[index];
             if (count == 4) {
                 type = FOUR_OF_A_KIND;
-                rankOne = static_cast<Rank>(index);
+                rankOne = (Rank) index;
                 // case where its 1 and 4
                 if (list[0].rank != rankOne) {
                     rankTwo = list[0].rank;
@@ -188,8 +229,11 @@ public:
         }
     }
 
-//    main comparison function used to compare these cards, operator overload for comparisons made while sorting
-    bool operator<(const Hand &other) const {
+    /*
+    main comparison function used to compare these cards, operator overload for comparisons made while sorting
+    This is set to <= so that merge sort can be stable and does not have to do twice as many comparisons
+    */
+    bool operator<=(const Hand &other) const {
         // if their types are different, return the one with the lower type
         if (type != other.type) {
             return type < other.type;
@@ -198,7 +242,7 @@ public:
         else {
             // in a straight flush, hand with the highest ranked card wins
             if (type == STRAIGHT_FLUSH || (type == STRAIGHT)) {
-                return list[4].rank < other.list[4].rank;
+                return list[4].rank <= other.list[4].rank;
             }
                 // in four of a kind
             else if (type == FOUR_OF_A_KIND) {
@@ -208,7 +252,7 @@ public:
                 }
                     // four ranks are the same, the one with the higher 5th card rank wins
                 else {
-                    return rankTwo < other.rankTwo;
+                    return rankTwo <= other.rankTwo;
                 }
             } else if (type == FULL_HOUSE) {
                 // the three cards are not the same rank, one with the higher rank wins
@@ -216,17 +260,21 @@ public:
                     return rankOne < other.rankOne;
                 }
                 // the three cards are the same rank, the one with the higher pair wins
-                return rankTwo < other.rankTwo;
+                return rankTwo <= other.rankTwo;
             } else if (type == FLUSH) {
                 for (int index = 4; index >= 0; --index) {
                     if (list[index].rank != other.list[index].rank) {
                         return list[index].rank < other.list[index].rank;
                     }
                 }
+                // if you've gone through the entire loop without finding anything, they are equal
+                return true;
             } else if (type == THREE_OF_A_KIND) {
                 if (rankOne != other.rankOne) {
                     return rankOne < other.rankOne;
                 }
+
+                // compare remaining two cards by rank
                 Rank highCard = TWO;
                 Rank otherHighCard = TWO;
                 Rank lowCard = TWO;
@@ -256,9 +304,8 @@ public:
                 if (highCard != otherHighCard) {
                     return highCard < otherHighCard;
                 } else {
-                    return lowCard < otherLowCard;
+                    return lowCard <= otherLowCard;
                 }
-                // the remaining two cards are compared lexicographically
             } else if (type == TWO_PAIR) {
                 if (rankOne != other.rankOne) {
                     return rankOne < other.rankOne;
@@ -275,7 +322,7 @@ public:
                         otherFifthCard = other.list[index].rank;
                     }
                 }
-                return fifthCard < otherFifthCard;
+                return fifthCard <= otherFifthCard;
             } else if (type == ONE_PAIR) {
                 if (rankTwo != other.rankTwo) {
                     return rankTwo < other.rankTwo;
@@ -300,6 +347,7 @@ public:
                         --otherIndex;
                     }
                 }
+                return true;
             }
             // otherwise there is a high card, get the highest card
             for (int index = 4; index >= 0; --index) {
@@ -308,11 +356,7 @@ public:
                 }
             }
         }
-        return false;
-    }
-
-    bool operator>(const Hand &other) const {
-        return other < *this;
+        return true;
     }
 
     bool operator==(const Hand &other) const {
@@ -392,7 +436,7 @@ vector<Hand> decodeHands(vector<int> &encodedHands) {
 
 //        sort the cards in a hand once they are created
 //TODO replace with your own sort later
-        stable_sort(hand.list.begin(), hand.list.end());
+        mergeSort(hand.list);
 //        determine the hand's type once it has been established
         hand.determineHandType();
         hand.s = hand.toString();
@@ -400,7 +444,6 @@ vector<Hand> decodeHands(vector<int> &encodedHands) {
     }
     return decodedHands;
 }
-
 
 /*
 You are given a list of hands, where each integer in the vector represents a
@@ -410,7 +453,7 @@ void poker_sort(vector<int> &a) {
     // main list of hands to work with
     vector<Hand> hands = decodeHands(a);
     // sort these hands. Using library sort for now, use own sort later, remember to remove imports later
-    stable_sort(hands.begin(), hands.end());
+    mergeSort(hands);
     for (int index = 0; index < hands.size(); ++index) {
         a[index] = hands[index].encodedHand;
     }
