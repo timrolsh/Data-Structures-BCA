@@ -234,14 +234,22 @@ public:
                 for (int index = 4; index >= 0; --index) {
                     if (list[index].rank != rankOne) {
                         highCard = list[index].rank;
-                        lowCard = list[index - 1].rank;
+                        --index;
+                        while (index >= 0 && list[index].rank == rankOne) {
+                            --index;
+                        }
+                        lowCard = list[index].rank;
                         break;
                     }
                 }
                 for (int index = 4; index >= 0; --index) {
                     if (other.list[index].rank != other.rankOne) {
                         otherHighCard = other.list[index].rank;
-                        otherLowCard = other.list[index - 1].rank;
+                        --index;
+                        while (index >= 0 && other.list[index].rank == other.rankOne) {
+                            --index;
+                        }
+                        otherLowCard = other.list[index].rank;
                         break;
                     }
                 }
