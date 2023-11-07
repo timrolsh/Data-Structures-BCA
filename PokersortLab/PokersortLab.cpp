@@ -2,7 +2,6 @@
 #include <vector>
 //TODO delete later
 #include <algorithm>
-#include <string>
 
 //TODO delete later
 using std::stable_sort;
@@ -228,20 +227,22 @@ public:
                 if (rankOne != other.rankOne) {
                     return rankOne < other.rankOne;
                 }
-                Rank highCard;
-                Rank otherHighCard;
-                Rank lowCard;
-                Rank otherLowCard;
+                Rank highCard = TWO;
+                Rank otherHighCard = TWO;
+                Rank lowCard = TWO;
+                Rank otherLowCard = TWO;
                 for (int index = 4; index >= 0; --index) {
                     if (list[index].rank != rankOne) {
                         highCard = list[index].rank;
                         lowCard = list[index - 1].rank;
+                        break;
                     }
                 }
                 for (int index = 4; index >= 0; --index) {
                     if (other.list[index].rank != other.rankOne) {
                         otherHighCard = other.list[index].rank;
                         otherLowCard = other.list[index - 1].rank;
+                        break;
                     }
                 }
                 if (highCard != otherHighCard) {
