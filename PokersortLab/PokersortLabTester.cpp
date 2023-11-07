@@ -93,12 +93,12 @@ void fileTester(const string &filename) {
 }
 
 int main() {
-//    cout << "Pokersort Lab Tester: \n\n#1: ShortOne: \n";
-//    fileTester((string) "TestCases/ShortOne");
-    cout << "\n#3: ShortTwo: \n";
+    cout << "Pokersort Lab Tester: \n\n#1: ShortOne: \n";
+    fileTester((string) "TestCases/ShortOne");
+    cout << "\n#2: ShortTwo: \n";
     fileTester((string ) "TestCases/ShortTwo");
-//    cout << "\n#2: LongOne: \n";
-//    fileTester((string ) "TestCases/LongOne");
-//    cout << "\n#3: LongTwo: \n";
-//    fileTester((string) "TestCases/LongTwo");
+    cout << "\n#3: LongOne: \n";
+    fileTester((string ) "TestCases/LongOne");
+    cout << "\n#4: LongTwo: \n";
+    fileTester((string) "TestCases/LongTwo");
 }
