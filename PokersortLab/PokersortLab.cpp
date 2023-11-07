@@ -274,8 +274,15 @@ public:
                 int index = 4;
                 int otherIndex = 4;
                 while (index >= 0 && otherIndex >= 0) {
+                    // we can compare two cards that are not pairs for both hands
                     if (list[index].rank != rankTwo && other.list[otherIndex].rank != other.rankTwo) {
-                        return list[index].rank < other.list[otherIndex].rank;
+                        // if these cards aren't the same rank, we can compare them
+                        if (list[index].rank != other.list[otherIndex].rank) {
+                            return list[index].rank < other.list[otherIndex].rank;
+                        }
+                        // these cards are the same rank, keep looking if we can find another 2 cards to compare
+                        --index;
+                        --otherIndex;
                     }
                     if (list[index].rank == rankTwo) {
                         --index;
