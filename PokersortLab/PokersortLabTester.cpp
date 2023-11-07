@@ -74,12 +74,12 @@ void fileTester(const string &filename) {
     auto end = high_resolution_clock::now();
     ifstream outFile(outFileName);
     int wrongCount = 0;
-    for (int i = 0; i < handsCount; i++) {
+    for (int index = 0; index < handsCount; index++) {
         int currentHand;
         outFile >> currentHand;
-        wrongCount += (currentHand != encodedHands[i]);
-        if (currentHand != encodedHands[i]) {
-            cout << i << ' ' << encodedHands[i] << '\n';
+        wrongCount += (currentHand != encodedHands[index]);
+        if (currentHand != encodedHands[index]) {
+            cout << index << ' ' << encodedHands[index] << '\n';
         }
     }
 
@@ -93,10 +93,10 @@ void fileTester(const string &filename) {
 }
 
 int main() {
-    cout << "Pokersort Lab Tester: \n\n#1: ShortOne: \n";
-    fileTester((string) "TestCases/ShortOne");
-//    cout << "\n#3: ShortTwo: \n";
-//    fileTester((string ) "TestCases/ShortTwo");
+//    cout << "Pokersort Lab Tester: \n\n#1: ShortOne: \n";
+//    fileTester((string) "TestCases/ShortOne");
+    cout << "\n#3: ShortTwo: \n";
+    fileTester((string ) "TestCases/ShortTwo");
 //    cout << "\n#2: LongOne: \n";
 //    fileTester((string ) "TestCases/LongOne");
 //    cout << "\n#3: LongTwo: \n";

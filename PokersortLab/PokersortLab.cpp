@@ -120,6 +120,13 @@ public:
             rankCounts[prevRank]++;
         }
 
+        // ace slow straight special case, ace is the smallest card in this hand
+        if ((isStraight) && list[0].rank == TWO && list[4].rank == ACE) {
+            Card ace = list.back();
+            list.pop_back();
+            list.insert(list.begin(), ace);
+            s = toString();
+        }
         if (isStraight && isFlush) {
             type = STRAIGHT_FLUSH;
             return;
@@ -273,7 +280,7 @@ public:
                     if (list[index].rank == rankTwo) {
                         --index;
                     }
-                    if (other.list[index].rank == other.rankTwo) {
+                    if (other.list[otherIndex].rank == other.rankTwo) {
                         --otherIndex;
                     }
                 }
@@ -349,7 +356,6 @@ public:
 };
 
 
-
 /*
 Given the vector of integers of encoded hands, create a vector of Hands and
 cards within those hands so that it is easier to work with anf ot sort
@@ -385,12 +391,11 @@ You are given a list of hands, where each integer in the vector represents a
 hand. The hand, which itself, is a list of cars is encoded into each integer.
 */
 void poker_sort(vector<int> &a) {
-//    main list of hands to work with
+    // main list of hands to work with
     vector<Hand> hands = decodeHands(a);
-//    sort these hands. Using library sort for now, use own sort later, remember to remove imports later
+    // sort these hands. Using library sort for now, use own sort later, remember to remove imports later
     sort(hands.begin(), hands.end());
     for (int index = 0; index < hands.size(); ++index) {
-        cout << hands[index].encodedHand << ": " << hands[index].s << '\n';
         a[index] = hands[index].encodedHand;
     }
 }
