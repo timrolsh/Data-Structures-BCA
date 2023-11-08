@@ -6,15 +6,13 @@ November 7th, 2023
 
 #include <iostream>
 #include <vector>
-#include <thread>
 #include <future>
 
-using std::cout;
 using std::vector;
 using std::string;
 using std::thread;
-using std::promise;
-using std::mutex;
+
+const int MAX_THREAD_DEPTH = 5;
 
 
 /*
@@ -116,7 +114,7 @@ public:
         rank = TWO;
     }
 
-//    operator overload for comparisons made while sorting cards in a hand
+    // cards are sorted only by rank
     bool operator<=(const Card &other) const {
         return rank <= other.rank;
     }
@@ -124,15 +122,10 @@ public:
     bool operator>(const Card &other) const {
         return rank > other.rank;
     }
-
-    bool operator==(const Card &other) const {
-        return rank == other.rank && suit == other.suit;
-    }
 };
 
 class Hand {
 public:
-//    TODO if this is doing a heap allocation, switch it to run on the stack
     vector<Card> list = vector<Card>(5);
     int encodedHand = 0;
     Type type = HIGH_CARD;
@@ -443,7 +436,6 @@ void decodeHands(vector<int> &encodedHands, int start, int end, vector<Hand> &de
             card.rank = (Rank) (encodedCard / 4);
             encodedHand /= 52;
         }
-
         // sort the cards in a hand once they are created
         insertionSort(hand.list);
         // determine the hand's type once it has been established
@@ -453,77 +445,30 @@ void decodeHands(vector<int> &encodedHands, int start, int end, vector<Hand> &de
     }
 }
 
-mutex mtxActiveThreads;
-
 /*
-This implementation is specifically ment for Hands, as it takes
-the resulting hands and writes them to the answer poker_sort vector.
+Sort vector in parallel using merge sort. Spawns a new thread for the left merge, and runs
+the right merge on the current thread. Stops creating new threads when the depth is too high.
 */
-vector<Hand> mergeSort(const vector<Hand> &hands, int &activeThreads, const int &maxThreads) {
-    // base case, hands is of size one, back out
+vector<Hand> mergeSort(vector<Hand> &hands, int depth) {
     if (hands.size() <= 1) {
         return hands;
     }
-    int middleIndex = (int) hands.size() / 2;
-    // left
-    promise<vector<Hand>> leftPromise;
-    thread *lt = nullptr;
-    // if we can make some more threads, start other merge sorts in parallel
-    mtxActiveThreads.lock();
-    if (activeThreads < maxThreads) {
-        ++activeThreads;
-        thread *leftThread = new thread([&]() {
-            leftPromise.set_value(
-                    mergeSort(vector<Hand>(hands.begin(), hands.begin() + middleIndex), activeThreads, maxThreads));
-        });
-        lt = leftThread;
-        mtxActiveThreads.unlock();
+    int middleIndex = hands.size() / 2;
+    if (depth < MAX_THREAD_DEPTH) {
+        // the left half of the array will sort in parallel on a second threat
+        vector<Hand> leftOriginal(hands.begin(), hands.begin() + middleIndex);
+        std::future<vector<Hand> > leftFuture = std::async(std::launch::async, mergeSort, ref(leftOriginal), depth + 1);
+        // the right half will run on this thread
+        vector<Hand> rightOriginal(hands.begin() + middleIndex, hands.end());
+        vector<Hand> right = mergeSort(rightOriginal, depth + 1);
+        // they should finish around the same time, so we can wait for the left thread to finish
+        return mergeSortedVectors(leftFuture.get(), right);
     }
-        // otherwise there are no more threads, sort in this thread
-    else {
-        mtxActiveThreads.unlock();
-        leftPromise.set_value(
-                mergeSort(vector<Hand>(hands.begin(), hands.begin() + middleIndex), activeThreads, maxThreads));
-    }
-    // right
-    promise<vector<Hand>> rightPromise;
-    thread *rt = nullptr;
-    // if we can make some more threads, start other merge sorts in parallel
-    mtxActiveThreads.lock();
-    if (activeThreads < maxThreads) {
-        ++activeThreads;
-        thread *rightThread = new thread([&]() {
-            rightPromise.set_value(
-                    mergeSort(vector<Hand>(hands.begin() + middleIndex, hands.end()), activeThreads, maxThreads));
-        });
-        rt = rightThread;
-        mtxActiveThreads.unlock();
-    }
-        // otherwise there are no more threads, sort in this thread
-    else {
-        mtxActiveThreads.unlock();
-        rightPromise.set_value(
-                mergeSort(vector<Hand>(hands.begin() + middleIndex, hands.end()), activeThreads, maxThreads));
-    }
-    // if these were done by threads, wait for them to finish before merging them
-    if (lt != nullptr) {
-        lt->join();
-        delete lt;
-        mtxActiveThreads.lock();
-        --activeThreads;
-        mtxActiveThreads.unlock();
-    }
-    if (rt != nullptr) {
-        rt->join();
-        delete rt;
-        mtxActiveThreads.lock();
-        --activeThreads;
-        mtxActiveThreads.unlock();
-    }
-    // merge the two sorted vectors
-    vector<Hand> left = leftPromise.get_future().get();
-    vector<Hand> right = rightPromise.get_future().get();
-    return mergeSortedVectors(left, right);
+    // single threaded merge sort if depth is too far down one at a time
+    vector<Hand> left(hands.begin(), hands.begin() + middleIndex);
+    vector<Hand> right(hands.begin() + middleIndex, hands.end());
+    return mergeSortedVectors(mergeSort(left, depth + 1),
+                              mergeSort(right, depth + 1));
 }
 
 /*
@@ -556,11 +501,8 @@ void poker_sort(vector<int> &a) {
     threads.clear();
 
     // sort these hands
-    int activeThreads = 0;
-    --threadCount;
-    vector<Hand> answer = mergeSort(hands, activeThreads, threadCount);
-    // encode the hands back into the vector of integers
+    hands = mergeSort(hands, 0);
     for (int index = 0; index < a.size(); ++index) {
-        a[index] = answer[index].encodedHand;
+        a[index] = hands[index].encodedHand;
     }
 }
