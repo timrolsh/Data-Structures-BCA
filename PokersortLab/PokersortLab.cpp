@@ -6,13 +6,19 @@ November 7th, 2023
 
 #include <iostream>
 #include <vector>
+#include <thread>
+#include <future>
 
 using std::cout;
 using std::vector;
 using std::string;
+using std::thread;
+using std::promise;
+using std::mutex;
+
 
 /*
-Given two sorted vectors, merge them into one sorted vector
+Insertion sort for smaller sized elements. This is a stable sort.
 */
 template<typename Type>
 vector<Type> mergeSortedVectors(vector<Type> vectorOne, vector<Type> vectorTwo) {
@@ -38,16 +44,17 @@ vector<Type> mergeSortedVectors(vector<Type> vectorOne, vector<Type> vectorTwo) 
 
 
 template<typename Type>
-void mergeSort(vector<Type> &list) {
-    if (list.size() <= 1) {
-        return;
+void insertionSort(vector<Type> &list) {
+    for (int outerIndex = 1; outerIndex < list.size(); ++outerIndex) {
+        Type key = list[outerIndex];
+        int innerIndex = outerIndex - 1;
+        // done with not <= to work with operator overload compare function for hands and cards
+        while (innerIndex >= 0 && list[innerIndex] > key) {
+            list[innerIndex + 1] = list[innerIndex];
+            innerIndex = innerIndex - 1;
+        }
+        list[innerIndex + 1] = key;
     }
-    int mid = list.size() / 2;
-    vector<Type> left(list.begin(), list.begin() + mid);
-    vector<Type> right(list.begin() + mid, list.end());
-    mergeSort(left);
-    mergeSort(right);
-    list = mergeSortedVectors(left, right);
 }
 
 enum Suit {
@@ -112,6 +119,10 @@ public:
 //    operator overload for comparisons made while sorting cards in a hand
     bool operator<=(const Card &other) const {
         return rank <= other.rank;
+    }
+
+    bool operator>(const Card &other) const {
+        return rank > other.rank;
     }
 
     bool operator==(const Card &other) const {
@@ -359,8 +370,8 @@ public:
         return true;
     }
 
-    bool operator==(const Hand &other) const {
-        return list == other.list;
+    bool operator>(const Hand &other) const {
+        return !(*this <= other);
     }
 
     string toString() {
@@ -420,9 +431,8 @@ public:
 Given the vector of integers of encoded hands, create a vector of Hands and
 cards within those hands so that it is easier to work with anf ot sort
 */
-vector<Hand> decodeHands(vector<int> &encodedHands) {
-    vector<Hand> decodedHands(encodedHands.size());
-    for (int handIndex = 0; handIndex < encodedHands.size(); ++handIndex) {
+void decodeHands(vector<int> &encodedHands, int start, int end, vector<Hand> &decodedHands) {
+    for (int handIndex = start; handIndex < end; ++handIndex) {
         int encodedHand = encodedHands[handIndex];
         Hand &hand = decodedHands[handIndex];
         hand.encodedHand = encodedHand;
@@ -434,15 +444,86 @@ vector<Hand> decodeHands(vector<int> &encodedHands) {
             encodedHand /= 52;
         }
 
-//        sort the cards in a hand once they are created
-//TODO replace with your own sort later
-        mergeSort(hand.list);
-//        determine the hand's type once it has been established
+        // sort the cards in a hand once they are created
+        insertionSort(hand.list);
+        // determine the hand's type once it has been established
         hand.determineHandType();
-        hand.s = hand.toString();
-
+        // make toString for debugging purposes
+        // hand.s = hand.toString();
     }
-    return decodedHands;
+}
+
+mutex mtxActiveThreads;
+
+/*
+This implementation is specifically ment for Hands, as it takes
+the resulting hands and writes them to the answer poker_sort vector.
+*/
+vector<Hand> mergeSort(const vector<Hand> &hands, int &activeThreads, const int &maxThreads) {
+    // base case, hands is of size one, back out
+    if (hands.size() <= 1) {
+        return hands;
+    }
+    int middleIndex = (int) hands.size() / 2;
+    // left
+    promise<vector<Hand>> leftPromise;
+    thread *lt = nullptr;
+    // if we can make some more threads, start other merge sorts in parallel
+    mtxActiveThreads.lock();
+    if (activeThreads < maxThreads) {
+        ++activeThreads;
+        thread *leftThread = new thread([&]() {
+            leftPromise.set_value(
+                    mergeSort(vector<Hand>(hands.begin(), hands.begin() + middleIndex), activeThreads, maxThreads));
+        });
+        lt = leftThread;
+        mtxActiveThreads.unlock();
+    }
+        // otherwise there are no more threads, sort in this thread
+    else {
+        mtxActiveThreads.unlock();
+        leftPromise.set_value(
+                mergeSort(vector<Hand>(hands.begin(), hands.begin() + middleIndex), activeThreads, maxThreads));
+    }
+    // right
+    promise<vector<Hand>> rightPromise;
+    thread *rt = nullptr;
+    // if we can make some more threads, start other merge sorts in parallel
+    mtxActiveThreads.lock();
+    if (activeThreads < maxThreads) {
+        ++activeThreads;
+        thread *rightThread = new thread([&]() {
+            rightPromise.set_value(
+                    mergeSort(vector<Hand>(hands.begin() + middleIndex, hands.end()), activeThreads, maxThreads));
+        });
+        rt = rightThread;
+        mtxActiveThreads.unlock();
+    }
+        // otherwise there are no more threads, sort in this thread
+    else {
+        mtxActiveThreads.unlock();
+        rightPromise.set_value(
+                mergeSort(vector<Hand>(hands.begin() + middleIndex, hands.end()), activeThreads, maxThreads));
+    }
+    // if these were done by threads, wait for them to finish before merging them
+    if (lt != nullptr) {
+        lt->join();
+        delete lt;
+        mtxActiveThreads.lock();
+        --activeThreads;
+        mtxActiveThreads.unlock();
+    }
+    if (rt != nullptr) {
+        rt->join();
+        delete rt;
+        mtxActiveThreads.lock();
+        --activeThreads;
+        mtxActiveThreads.unlock();
+    }
+    // merge the two sorted vectors
+    vector<Hand> left = leftPromise.get_future().get();
+    vector<Hand> right = rightPromise.get_future().get();
+    return mergeSortedVectors(left, right);
 }
 
 /*
@@ -450,11 +531,36 @@ You are given a list of hands, where each integer in the vector represents a
 hand. The hand, which itself, is a list of cars is encoded into each integer.
 */
 void poker_sort(vector<int> &a) {
+    // decide how many threads we are going to use for this algorithm based on the size of the list
+    int threadCount = (int) a.size() / 20000;
+    if (threadCount == 0) {
+        threadCount = 1;
+    }
+    vector<thread> threads;
     // main list of hands to work with
-    vector<Hand> hands = decodeHands(a);
-    // sort these hands. Using library sort for now, use own sort later, remember to remove imports later
-    mergeSort(hands);
-    for (int index = 0; index < hands.size(); ++index) {
-        a[index] = hands[index].encodedHand;
+    vector<Hand> hands(a.size());
+    // decode the hands into the vector of hands in parallel
+    int blockSize = (int) a.size() / threadCount;
+    int start = 0;
+    int end = blockSize;
+    while (start < a.size()) {
+        threads.emplace_back(decodeHands, ref(a), start, end, ref(hands));
+        start += blockSize;
+        end += blockSize;
+    }
+
+    // wait for threads to finish decoding hands
+    for (thread &thr: threads) {
+        thr.join();
+    }
+    threads.clear();
+
+    // sort these hands
+    int activeThreads = 0;
+    --threadCount;
+    vector<Hand> answer = mergeSort(hands, activeThreads, threadCount);
+    // encode the hands back into the vector of integers
+    for (int index = 0; index < a.size(); ++index) {
+        a[index] = answer[index].encodedHand;
     }
 }
