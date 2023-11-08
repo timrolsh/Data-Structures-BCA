@@ -1,10 +1,17 @@
+/*
+Tim Rolshud
+Data Structures Period 1
+November 7th, 2023
+*/
+
 #include <iostream>
 #include <string>
-#include <cmath>
 #include <chrono>
 #include <fstream>
 
-using namespace std;
+using std::string;
+using std::ifstream;
+using std::cout;
 using namespace std::chrono;
 
 #include "PokersortLab.hpp"
