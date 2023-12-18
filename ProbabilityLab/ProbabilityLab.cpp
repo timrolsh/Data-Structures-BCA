@@ -1,9 +1,13 @@
+/*
+Tim Rolshud
+Data Structures
+December 18th, 2023
+*/
 #include "ProbabilityLab.hpp"
-#include <iostream>
 #include <random>
 
 #define BINARY_ITERATIONS 30
-using std::cout;
+
 using std::random_device;
 using std::mt19937;
 using std::bernoulli_distribution;
