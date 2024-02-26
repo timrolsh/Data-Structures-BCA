@@ -1,64 +1,70 @@
 /*
-Tim Rolsud
+Tim Rolshud
 Data Structures
 February 23rd, 2024
 */
 #include <vector>
 
 using std::vector;
-using std::pair;
-using std::min;
 
-using VI = vector<int>;
-using VPII = vector<pair<int, int>>;
+typedef vector<int> VI;
 
-void findBridges(int u, vector<VI> &adjacencyList, VI &visited, VI &discoverTime, VI &lowestDiscoveryTime, VI &parent,
-                 VPII &bridges) {
-    static int time = 0;
-    visited[u] = 1;
-    discoverTime[u] = lowestDiscoveryTime[u] = ++time;
+class NodesGraph {
+    vector<VI> adjacencyList;
+    vector<bool> visited;
+    int totalNodes;
+public:
+    NodesGraph(int n, int node, vector<int> &tubes) {
+        adjacencyList = vector<VI>(n);
+        visited = vector<bool>(n);
+        totalNodes = n;
 
-    for (int v: adjacencyList[u]) {
-        if (!visited[v]) {
-            parent[v] = u;
-            findBridges(v, adjacencyList, visited, discoverTime, lowestDiscoveryTime, parent, bridges);
-            lowestDiscoveryTime[u] = min(lowestDiscoveryTime[u], lowestDiscoveryTime[v]);
-            if (lowestDiscoveryTime[v] > discoverTime[u]) {
-                bridges.emplace_back(u, v);
+        for (int a = 0; a < tubes.size(); a += 2) {
+            if (tubes[a] != node && tubes[a + 1] != node) {
+                adjacencyList[tubes[a]].push_back(tubes[a + 1]);
+                adjacencyList[tubes[a + 1]].push_back(tubes[a]);
             }
-        } else if (v != parent[u]) {
-            lowestDiscoveryTime[u] = min(lowestDiscoveryTime[u], discoverTime[v]);
         }
     }
-}
 
-vector<VI> convertToAdjList(int n, VI &tubes) {
-    vector<VI> adj(n);
-    for (size_t i = 0; i < tubes.size(); i += 2) {
-        adj[tubes[i]].push_back(tubes[i + 1]);
-        adj[tubes[i + 1]].push_back(tubes[i]);
+    /*
+    Count he number of connected nodes in the graph after a specific node
+    has been removed by excluding any edges connected to that node
+    */
+    int countedConnectedComponents() {
+        int count = 0;
+        for (int i = 0; i < totalNodes; i++) {
+            if (!visited[i]) {
+                ++count;
+                traverseNodes(i);
+            }
+        }
+        return count;
     }
-    return adj;
-}
 
-int transporters(int n, VI &tubes) {
-    vector<VI> adjacencyList = convertToAdjList(n, tubes);
-    VI visited(n, 0), discoverTime(n), lowestDiscoveryTime(n), parent(n, -1);
-    VPII bridges;
-
-    for (int i = 0; i < n; ++i) {
-        if (!visited[i]) {
-            findBridges(i, adjacencyList, visited, discoverTime, lowestDiscoveryTime, parent, bridges);
+    /*
+    Perform a DFS traversal of the Node Graph given a Node index
+    */
+    void traverseNodes(int nodeIndex) {
+        visited[nodeIndex] = true;
+        for (int i: adjacencyList[nodeIndex]) {
+            if (!visited[i]) {
+                traverseNodes(i);
+            }
         }
     }
-    return (int) bridges.size();
-}
+};
 
-#include <iostream>
-using std::cout;
-// to be removed
-int main() {
-    int n = 7;
-    vector<int> tubes = {6, 0, 0, 2, 0, 1, 1, 4, 1, 3, 2, 5};
-    cout << transporters(n, tubes);
+int transporters(int n, vector<int> &tubes) {
+    int count = 0;
+    int tempMax = -1;
+
+    for (int i = 0; i < n; i++) {
+        NodesGraph graph(n, i, tubes);
+        tempMax = graph.countedConnectedComponents();
+        if (tempMax > count) {
+            count = tempMax;
+        }
+    }
+    return count;
 }
