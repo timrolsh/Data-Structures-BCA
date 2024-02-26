@@ -9,11 +9,14 @@ using std::vector;
 
 typedef vector<int> VI;
 
-class NodesGraph {
+struct NodesGraph {
     vector<VI> adjacencyList;
     vector<bool> visited;
     int totalNodes;
-public:
+
+    /*
+    Constructor for this struct
+    */
     NodesGraph(int n, int node, vector<int> &tubes) {
         adjacencyList = vector<VI>(n);
         visited = vector<bool>(n);
@@ -31,7 +34,7 @@ public:
     Count he number of connected nodes in the graph after a specific node
     has been removed by excluding any edges connected to that node
     */
-    int countedConnectedComponents() {
+    int countConnectedComponents() {
         int count = 0;
         for (int i = 0; i < totalNodes; i++) {
             if (!visited[i]) {
@@ -59,9 +62,9 @@ int transporters(int n, vector<int> &tubes) {
     int count = 0;
     int tempMax = -1;
 
-    for (int i = 0; i < n; i++) {
-        NodesGraph graph(n, i, tubes);
-        tempMax = graph.countedConnectedComponents();
+    for (int node = 0; node < n; ++node) {
+        NodesGraph graph(n, node, tubes);
+        tempMax = graph.countConnectedComponents();
         if (tempMax > count) {
             count = tempMax;
         }
