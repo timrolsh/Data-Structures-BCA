@@ -5,16 +5,6 @@ using std::vector;
 using std::min;
 using std::abs;
 
-#include <cassert>
-#include <iostream>
-
-using std::cerr;
-using std::cin;
-using std::cout;
-using std::istream;
-using std::ostream;
-
-
 class Mod {
 public:
     explicit Mod(unsigned long t) {
