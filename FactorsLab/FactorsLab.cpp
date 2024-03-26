@@ -72,6 +72,12 @@ public:
         return answer;
     }
 
+    Mod operator+(const Mod &b) {
+        Mod answer = *this;
+        answer += b;
+        return answer;
+    }
+
     Mod pwr(long e) const {
         // 0 to the power of e will always be 0
         if (x == 0) {
@@ -221,20 +227,21 @@ unsigned long gcd(unsigned long a, unsigned long b) {
 The pseudorandom function used in the Pollard Rho algorithm
 g(x) = x^2 + 1 % n
 **/
-unsigned long g(unsigned long x, unsigned long n) {
-    return (x * x + 1) % n;
+unsigned long g(unsigned long x) {
+    return (Mod(x).pwr(2) + Mod(1)).val();
 }
 
 /**
 Use the Pollard Rho algorithm to find a prime factor of a number. An output of -1 indicates failure.
 **/
 long findPrime(unsigned long n) {
+    Mod::set_modulus(n);
     unsigned long x = 2;
     unsigned long y = x;
     unsigned long d = 1;
     while (d == 1) {
-        x = g(x, n);
-        y = g(g(y, n), n);
+        x = g(x);
+        y = g(g(y));
         d = gcd(abs((long) (x - y)), n);
     }
     if (d == n) {
