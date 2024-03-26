@@ -245,6 +245,10 @@ long findPrime(unsigned long n) {
 
 vector<unsigned long> factor(unsigned long n) {
     vector<unsigned long> factors;
+    if (n == 1) {
+        factors.push_back(1);
+        factors.push_back(1);
+    }
     // Step 1: Check for divisibility by small primes.
     for (unsigned long smallPrime: smallPrimes) {
         if (n == 1) {
@@ -275,7 +279,7 @@ vector<unsigned long> factor(unsigned long n) {
     // If it is not, use Pollard-Rho to find a prime factor, and then factor the smaller remaining number.
     long primeFactor = findPrime(n);
     while (n != 1 && primeFactor != -1) {
-        if (factors[factors.size() - 2] == primeFactor) {
+        if (factors.size() >= 2 && factors[factors.size() - 2] == primeFactor) {
             factors[factors.size() - 1] += 1;
         } else {
             factors.push_back(primeFactor);
@@ -284,7 +288,7 @@ vector<unsigned long> factor(unsigned long n) {
         n /= primeFactor;
         primeFactor = findPrime(n);
     }
-    if (factors[factors.size() - 2] == n) {
+    if (factors.size() >= 2 && factors[factors.size() - 2] == n) {
         factors[factors.size() - 1] += 1;
     } else {
         factors.push_back(n);
