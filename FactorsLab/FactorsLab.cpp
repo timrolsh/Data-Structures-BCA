@@ -101,16 +101,24 @@ vector<unsigned long> factor(unsigned long n) {
     vector<unsigned long> factors;
     // Step 1: Check for divisibility by small primes.
     for (unsigned long smallPrime: smallPrimes) {
+        if (n == 1) {
+            break;
+        }
         bool pushed = false;
         while (n % smallPrime == 0) {
             if (!pushed) {
                 factors.push_back(smallPrime);
                 factors.push_back(1);
                 pushed = true;
+            } else {
+                factors[factors.size() - 1] += 1;
             }
-            factors[factors.size() - 1] += 1;
             n /= smallPrime;
         }
+    }
+    // If n has been factored all the way down to 1 with small primes, return list as is
+    if (n == 1) {
+        return factors;
     }
     // After that, if the number is still large, use Miller-Rabin to check if it is prime.
     if (isPrime(n)) {
@@ -120,7 +128,7 @@ vector<unsigned long> factor(unsigned long n) {
     }
     // If it is not, use Pollard-Rho to find a prime factor, and then factor the smaller remaining number.
     long primeFactor = findPrime(n);
-    while (primeFactor != -1) {
+    while (n != 1 && primeFactor != -1) {
         if (factors[factors.size() - 2] == primeFactor) {
             factors[factors.size() - 1] += 1;
         } else {
