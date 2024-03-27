@@ -1,7 +1,9 @@
 #include <vector>
+#include <map>
 #include "FactorsLab.hpp"
 
 using std::vector;
+using std::map;
 using std::min;
 using std::abs;
 
@@ -250,56 +252,67 @@ long findPrime(unsigned long n) {
     return (long) d;
 }
 
-vector<unsigned long> factor(unsigned long n) {
+vector<unsigned long> orderedFactorsFromMap(map<unsigned long, unsigned long> &factorsMap) {
     vector<unsigned long> factors;
+    while (!factorsMap.empty()) {
+        unsigned long smallestFactor = factorsMap.begin()->first;
+        for (auto const &pair: factorsMap) {
+            if (pair.first < smallestFactor) {
+                smallestFactor = pair.first;
+            }
+        }
+        factors.push_back(smallestFactor);
+        factors.push_back(factorsMap[smallestFactor]);
+        factorsMap.erase(smallestFactor);
+    }
+    return factors;
+}
+
+vector<unsigned long> factor(unsigned long n) {
+    map<unsigned long, unsigned long> factorsMap;
     if (n == 1) {
-        factors.push_back(1);
-        factors.push_back(1);
+        return vector<unsigned long>({1, 1});
     }
     // Step 1: Check for divisibility by small primes.
     for (unsigned long smallPrime: smallPrimes) {
         if (n == 1) {
             break;
         }
-        bool pushed = false;
         while (n % smallPrime == 0) {
-            if (!pushed) {
-                factors.push_back(smallPrime);
-                factors.push_back(1);
-                pushed = true;
+            if (factorsMap.find(smallPrime) != factorsMap.end()) {
+                factorsMap[smallPrime] += 1;
             } else {
-                factors[factors.size() - 1] += 1;
+                factorsMap[smallPrime] = 1;
             }
             n /= smallPrime;
         }
     }
     // If n has been factored all the way down to 1 with small primes, return list as is
     if (n == 1) {
-        return factors;
+        return orderedFactorsFromMap(factorsMap);
     }
     // After that, if the number is still large, use Miller-Rabin to check if it is prime.
     if (isPrime(n)) {
-        factors.push_back(n);
-        factors.push_back(1);
-        return factors;
+        factorsMap[n] = 1;
+        return orderedFactorsFromMap(factorsMap);
     }
     // If it is not, use Pollard-Rho to find a prime factor, and then factor the smaller remaining number.
     long primeFactor = findPrime(n);
     while (n != 1 && primeFactor != -1) {
-        if (factors.size() >= 2 && factors[factors.size() - 2] == primeFactor) {
-            factors[factors.size() - 1] += 1;
+        if (factorsMap.find(primeFactor) != factorsMap.end()) {
+            factorsMap[primeFactor] += 1;
         } else {
-            factors.push_back(primeFactor);
-            factors.push_back(1);
+            factorsMap[primeFactor] = 1;
         }
         n /= primeFactor;
         primeFactor = findPrime(n);
     }
-    if (factors.size() >= 2 && factors[factors.size() - 2] == n) {
-        factors[factors.size() - 1] += 1;
+    if (factorsMap.find(n) != factorsMap.end()) {
+        factorsMap[n] += 1;
     } else {
-        factors.push_back(n);
-        factors.push_back(1);
+        factorsMap[n] = 1;
     }
-    return factors;
+    return orderedFactorsFromMap(factorsMap);
 }
+
+//TODO use a hashmap to fix the ordering issue and then pull from the hashmap and put them in order, next fix the fact that the perfect squares aren't being factored correctly and it should be good to go
