@@ -1,3 +1,8 @@
+/**
+Tim Rolshud
+Data Structures
+March 26 2024
+**/
 #include <vector>
 #include <map>
 #include "FactorsLab.hpp"
@@ -253,6 +258,10 @@ long findPrime(unsigned long n) {
     return (long) d;
 }
 
+/**
+Convert map where factors are keys and their exponents are values into
+an increasing order sorted vector of factors followed by their exponents.
+**/
 vector<unsigned long> orderedFactorsFromMap(map<unsigned long, unsigned long> &factorsMap) {
     vector<unsigned long> factors;
     while (!factorsMap.empty()) {
@@ -321,5 +330,3 @@ vector<unsigned long> factor(unsigned long n) {
     }
     return orderedFactorsFromMap(factorsMap);
 }
-
-//TODO use a hashmap to fix the ordering issue and then pull from the hashmap and put them in order, next fix the fact that the perfect squares aren't being factored correctly and it should be good to go
