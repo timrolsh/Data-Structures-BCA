@@ -6,6 +6,7 @@ using std::vector;
 using std::map;
 using std::min;
 using std::abs;
+using std::sqrt;
 
 class Mod {
 public:
@@ -154,7 +155,7 @@ private:
             t = r0;
             r0 = m % r0;
             m = t;
-            // flip neagtive check
+            // flip negative check
             negative = !negative;
         }
         // check if inverse exits
@@ -270,6 +271,7 @@ vector<unsigned long> orderedFactorsFromMap(map<unsigned long, unsigned long> &f
 
 vector<unsigned long> factor(unsigned long n) {
     map<unsigned long, unsigned long> factorsMap;
+    // Edge case: we are factoring 1, 1 * 1
     if (n == 1) {
         return vector<unsigned long>({1, 1});
     }
@@ -295,6 +297,11 @@ vector<unsigned long> factor(unsigned long n) {
     if (isPrime(n)) {
         factorsMap[n] = 1;
         return orderedFactorsFromMap(factorsMap);
+    }
+    // Edge case, the number is a perfect square
+    auto sqrtN = (unsigned long) sqrt(n);
+    if (sqrtN * sqrtN == n) {
+        return vector<unsigned long>({sqrtN, 2});
     }
     // If it is not, use Pollard-Rho to find a prime factor, and then factor the smaller remaining number.
     long primeFactor = findPrime(n);
