@@ -9,6 +9,7 @@ March 26 2024
 
 using std::vector;
 using std::map;
+using std::tuple;
 using std::min;
 using std::abs;
 using std::sqrt;
@@ -94,30 +95,27 @@ public:
         // the modular negative power is the same as the modular positive power
         // of the modular inverse
         if (e < 0) {
-            return inv(x).pwr(-1 * e);
+            return inv(x).pwr(-e);
         }
-            // anything to the power of 0 is 1
-        else if (e == 0) {
+        // Anything to the power of 0 is 1.
+        if (e == 0) {
             return Mod(1);
         }
-        if (x > 0) {
-            Mod xMultiply(x);
-            // use an even exponent, and go down to the nearest even exponent if
-            // it is odd
-            if (e % 2 == 0) {
-                xMultiply *= xMultiply;
-                return xMultiply.pwr(e / 2);
-            } else {
-                Mod factor = (xMultiply * xMultiply).pwr(e / 2);
-                return factor * xMultiply;
+        // Start with the result as 1.
+        Mod result(1);
+        // Copy of the base which will be squared each iteration.
+        Mod base(x);
+        while (e > 0) {
+            if (e % 2 == 1) {
+                // If the current exponent bit is 1, multiply the result by the base.
+                result *= base;
             }
-        } else {
-            int multiply = -1;
-            if (e % 2 == 0) {
-            }
-            return Mod(multiply * Mod(-x).pwr(e).val());
+            base *= base; // Square the base for the next bit of the exponent.
+            e /= 2; // Move to the next bit of the exponent.
         }
+        return result;
     }
+
 
     unsigned long val() const {
         return x;
