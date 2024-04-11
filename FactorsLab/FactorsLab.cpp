@@ -14,167 +14,21 @@ using std::min;
 using std::abs;
 using std::sqrt;
 
-class Mod {
-public:
-    explicit Mod(unsigned long t) {
-        x = t % Mod::get_modulus();
-        if (x < 0) {
-            x += Mod::get_modulus();
-        }
+unsigned long modularPower(unsigned long base, unsigned long exponent, unsigned long modulus) {
+    if (modulus == 1) {
+        return 0;
     }
-
-    Mod &operator+=(const Mod &m) {
-        unsigned long modX = x % Mod::get_modulus();
-        unsigned long modMX = m.val() % Mod::get_modulus();
-        // positive overflow check
-        if (x > 0 && m.val() > 0 && (x + m.val()) < 0) {
-            x = ((modX - Mod::get_modulus()) + modMX) % Mod::get_modulus();
+    unsigned long result = 1;
+    base %= modulus;
+    while (exponent > 0) {
+        if (exponent & 1) {
+            result = (result * base) % modulus;
         }
-            // negative overflow check
-        else if (x < 0 && m.val() < 0 && (x + m.val()) > 0) {
-            x = ((modX + Mod::get_modulus()) + modMX) % Mod::get_modulus();
-        }
-            // no overflow will happen, they can just be added normally
-        else {
-            x = (x + m.val()) % Mod::get_modulus();
-        }
-        return *this;
+        exponent >>= 1;
+        base = (base * base) % modulus;
     }
-
-    Mod &operator-=(const Mod &m) {
-        // mod subtracting is the same thing as mod adding the negative of the
-        // quantity
-        return *this += -m;
-    }
-
-    Mod &operator*=(const Mod &m) {
-        unsigned long tracker = m.val();
-        Mod total(0);
-        Mod n(x);
-        while (tracker != 0) {
-            // if the tracker is odd, modadd x to the total
-            if (tracker % 2 == 1) {
-                total += n;
-            }
-            tracker /= 2;
-            n += n;
-        }
-        *this = total;
-        return *this;
-    }
-
-    Mod &operator/=(const Mod &m) {
-        // dividing is the same thing as multiplying by the power of -1
-        Mod answer(x);
-        answer *= m.pwr(-1);
-        *this = answer;
-        return *this;
-    }
-
-    Mod operator-() const {
-        return Mod(-1 * x);
-    }
-
-    Mod operator*(const Mod &b) {
-        Mod answer = *this;
-        answer *= b;
-        return answer;
-    }
-
-    Mod operator+(const Mod &b) {
-        Mod answer = *this;
-        answer += b;
-        return answer;
-    }
-
-    Mod pwr(long e) const {
-        // 0 to the power of e will always be 0
-        if (x == 0) {
-            return Mod(0);
-        }
-        // the modular negative power is the same as the modular positive power
-        // of the modular inverse
-        if (e < 0) {
-            return inv(x).pwr(-e);
-        }
-        // Anything to the power of 0 is 1.
-        if (e == 0) {
-            return Mod(1);
-        }
-        // Start with the result as 1.
-        Mod result(1);
-        // Copy of the base which will be squared each iteration.
-        Mod base(x);
-        while (e > 0) {
-            if (e % 2 == 1) {
-                // If the current exponent bit is 1, multiply the result by the base.
-                result *= base;
-            }
-            base *= base; // Square the base for the next bit of the exponent.
-            e /= 2; // Move to the next bit of the exponent.
-        }
-        return result;
-    }
-
-
-    unsigned long val() const {
-        return x;
-    }
-
-    static void set_modulus(unsigned long m) {
-        if (m < 2) {
-            throw std::runtime_error(
-                    "The Mod::get_modulus() cannot be less than 2.");
-        }
-        modulus = m;
-    }
-
-    static unsigned long get_modulus() {
-        return modulus;
-    }
-
-private:
-    unsigned long x;
-    static unsigned long modulus;
-
-    static Mod inv(unsigned long r0) {
-        unsigned long m = Mod::get_modulus();
-        // make sure r0 is within range: [0, m-1]
-        r0 %= m;
-        // check for positive overflow
-        if (r0 > 0 && r0 + m < 0) {
-            return inv(r0 - m);
-        }
-        r0 = (r0 + m) % m;
-        // use x1 and x2 for extended gcd algorithm
-        unsigned long originalMod = m, x1 = 1, x2 = 0;
-        bool negative = false;
-        // use extended gcd to find modular inverse
-        while (m % r0 != 0) {
-            unsigned long q = m / r0;
-            unsigned long t = x1;
-            x1 = q * x1 + x2;
-            x2 = t;
-            t = r0;
-            r0 = m % r0;
-            m = t;
-            // flip negative check
-            negative = !negative;
-        }
-        // check if inverse exits
-        if ((m / r0 * x1 + x2) != originalMod) {
-            throw std::runtime_error("The inverse does not exist.");
-        }
-        // adjust value to have proper sign if its negative
-        if (negative) {
-            return Mod((-x1 % originalMod + originalMod) % originalMod);
-        }
-        return Mod(x1);
-    }
-};
-
-// Set default value to avoid compiler error
-unsigned long Mod::modulus = 0;
+    return result;
+}
 
 /**
 Given a positive integer, return its prime factorization as a vector where each odd index is a prime factor and each
@@ -190,21 +44,20 @@ bool isPrime(unsigned long n) {
     if (n == 2) {
         return true;
     }
-    if (n < 2 || n % 2 == 0) {
+    if (n < 2 || (n & 0)) {
         return false;
     }
     // n - 1 = 2^s * d
     int s = 0;
     unsigned long d = n - 1;
-    while (d % 2 == 0) {
+    while (d & 0) {
         s++;
-        d /= 2;
+        d >>= 2;
     }
     for (int a = 2; a < min(n - 2, (unsigned long) pow(2 * log(n), 2)); ++a) {
-        Mod::set_modulus(n);
-        unsigned long x = Mod(a).pwr((long) d).val();
+        unsigned long x = modularPower(a, d, n);
         for (int _ = 0; _ < s; ++_) {
-            unsigned long y = Mod(x).pwr(2).val();
+            unsigned long y = modularPower(x, 2, n);
             if (y == 1 && x != 1 && x != n - 1) {
                 return false;
             }
@@ -231,23 +84,22 @@ unsigned long gcd(unsigned long a, unsigned long b) {
 
 /**
 The pseudorandom function used in the Pollard Rho algorithm
-g(x) = x^2 + 1 % n
+g(x) = (x^2 + 1) % n
 **/
-unsigned long g(unsigned long x) {
-    return (Mod(x).pwr(2) + Mod(1)).val();
+unsigned long g(unsigned long x, unsigned long n) {
+    return (modularPower(x, 2, n) + 1) % n;
 }
 
 /**
 Use the Pollard Rho algorithm to find a prime factor of a number. An output of -1 indicates failure.
 **/
 long findPrime(unsigned long n) {
-    Mod::set_modulus(n);
     unsigned long x = 2;
     unsigned long y = x;
     unsigned long d = 1;
     while (d == 1) {
-        x = g(x);
-        y = g(g(y));
+        x = g(x, n);
+        y = g(g(y, n), n);
         d = gcd(abs((long) (x - y)), n);
     }
     if (d == n) {
