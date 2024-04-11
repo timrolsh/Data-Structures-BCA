@@ -95,26 +95,38 @@ unsigned long gcd(unsigned long a, unsigned long b) {
 The pseudorandom function used in the Pollard Rho algorithm
 g(x) = (x^2 + 1) % n
 **/
-unsigned long g(unsigned long x, unsigned long n) {
-    return (modularPower(x, 2, n) + 1) % n;
+unsigned long g(unsigned long x, unsigned long n, unsigned long c) {
+    return (modularPower(x, 2, n) + c) % n;
 }
 
 /**
 Use the Pollard Rho algorithm to find a prime factor of a number. An output of -1 indicates failure.
 **/
-long findPrime(unsigned long n) {
-    unsigned long x = 2;
-    unsigned long y = x;
-    unsigned long d = 1;
-    while (d == 1) {
-        x = g(x, n);
-        y = g(g(y, n), n);
-        d = gcd(abs((long) (x - y)), n);
+unsigned long findPrime(unsigned long n) {
+    if (n % 2 == 0) {
+         return 2;
     }
+
+    unsigned long x = 2, c = 1, y = x, d = 1;
+    unsigned long power = 1, lam = 1;
+
+    while (d == 1) {
+        if (power == lam) {
+            x = y;
+            power *= 2;
+            lam = 0;
+        }
+        y = g(y, n, c);
+        lam += 1;
+        // Ensure non-negative difference
+        d = gcd((y > x ? y - x : x - y), n);
+    }
+    // Failure to find a factor
     if (d == n) {
         return -1;
     }
-    return (long) d;
+    // A non-trivial factor was found
+    return d;
 }
 
 /**
@@ -172,7 +184,7 @@ vector<unsigned long> factor(unsigned long n) {
         return vector<unsigned long>({sqrtN, 2});
     }
     // If it is not, use Pollard-Rho to find a prime factor, and then factor the smaller remaining number.
-    long primeFactor = findPrime(n);
+    unsigned long primeFactor = findPrime(n);
     while (n != 1 && primeFactor != -1) {
         if (factorsMap.find(primeFactor) != factorsMap.end()) {
             factorsMap[primeFactor] += 1;
