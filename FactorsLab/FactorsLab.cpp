@@ -4,15 +4,11 @@ Data Structures
 March 26 2024
 **/
 #include <vector>
-#include <map>
 #include "FactorsLab.hpp"
 
 using std::vector;
-using std::map;
-using std::tuple;
+using std::unordered_map;
 using std::min;
-using std::abs;
-using std::sqrt;
 
 unsigned long modularMultiply(unsigned long a, unsigned long b, unsigned long modulus) {
     unsigned long result = 0;
@@ -125,7 +121,7 @@ long findPrime(unsigned long n) {
 Convert map where factors are keys and their exponents are values into
 an increasing order sorted vector of factors followed by their exponents.
 **/
-vector<unsigned long> orderedFactorsFromMap(map<unsigned long, unsigned long> &factorsMap) {
+vector<unsigned long> orderedFactorsFromMap(unordered_map<unsigned long, unsigned long> &factorsMap) {
     vector<unsigned long> factors;
     while (!factorsMap.empty()) {
         unsigned long smallestFactor = factorsMap.begin()->first;
@@ -142,7 +138,7 @@ vector<unsigned long> orderedFactorsFromMap(map<unsigned long, unsigned long> &f
 }
 
 vector<unsigned long> factor(unsigned long n) {
-    map<unsigned long, unsigned long> factorsMap;
+    unordered_map<unsigned long, unsigned long> factorsMap;
     // Edge case: we are factoring 1, 1 * 1
     if (n == 1) {
         return vector<unsigned long>({1, 1});
