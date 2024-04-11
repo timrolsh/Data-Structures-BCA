@@ -14,6 +14,19 @@ using std::min;
 using std::abs;
 using std::sqrt;
 
+unsigned long modularMultiply(unsigned long a, unsigned long b, unsigned long modulus) {
+    unsigned long result = 0;
+    a %= modulus;
+    while (b > 0) {
+        if (b & 1) {
+            result = (result + a) % modulus;
+        }
+        a = (a << 1) % modulus;
+        b >>= 1;
+    }
+    return result;
+}
+
 unsigned long modularPower(unsigned long base, unsigned long exponent, unsigned long modulus) {
     if (modulus == 1) {
         return 0;
@@ -22,10 +35,10 @@ unsigned long modularPower(unsigned long base, unsigned long exponent, unsigned 
     base %= modulus;
     while (exponent > 0) {
         if (exponent & 1) {
-            result = (result * base) % modulus;
+            result = modularMultiply(result, base, modulus);
         }
         exponent >>= 1;
-        base = (base * base) % modulus;
+        base = modularMultiply(base, base, modulus);
     }
     return result;
 }
