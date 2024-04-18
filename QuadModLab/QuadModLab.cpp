@@ -6,17 +6,17 @@ using std::vector;
 using std::unordered_map;
 using std::min;
 
-unsigned long modularMultiply(long a, long b, long m) {
+long modularMultiply(long a, long b, long m) {
     // Anything mod 0 is 1
     if (m == 1) {
         return 0;
     }
-    unsigned long aModm = a % m;
-    unsigned long bModm = b % m;
-    unsigned long product = aModm * bModm;
+    long aModm = a % m;
+    long bModm = b % m;
+    long product = aModm * bModm;
     // Overflow check, perform sophisticated modular multiplication algorithm for large numbers that overflow.
     if (aModm != 0 && product / aModm != bModm) {
-        unsigned long result = 0;
+        long result = 0;
         a %= m;
         while (b > 0) {
             // If b is odd, add a to result if it doesn't overflow
@@ -47,11 +47,11 @@ unsigned long modularMultiply(long a, long b, long m) {
     }
 }
 
-unsigned long modularPower(unsigned long base, unsigned long exponent, unsigned long modulus) {
+long modularPower(long base, long exponent, long modulus) {
     if (modulus == 1) {
         return 0;
     }
-    unsigned long result = 1;
+    long result = 1;
     base %= modulus;
     while (exponent > 0) {
         if (exponent & 1) {
@@ -100,7 +100,7 @@ long modularInverse(long r0, long m) {
 /**
 A deterministic version of the Miller-Rabin algorithm to check if a number is prime.
 **/
-bool isPrime(unsigned long n) {
+bool isPrime(long n) {
     // 2 is the only even prime number
     if (n == 2) {
         return true;
@@ -110,15 +110,15 @@ bool isPrime(unsigned long n) {
     }
     // n - 1 = 2^s * d
     int s = 0;
-    unsigned long d = n - 1;
+    long d = n - 1;
     while (d & 0) {
         s++;
         d >>= 2;
     }
-    for (int a = 2; a < min(n - 2, (unsigned long) pow(2 * log(n), 2)); ++a) {
-        unsigned long x = modularPower(a, d, n);
+    for (int a = 2; a < min(n - 2, (long) pow(2 * log(n), 2)); ++a) {
+        long x = modularPower(a, d, n);
         for (int _ = 0; _ < s; ++_) {
-            unsigned long y = modularPower(x, 2, n);
+            long y = modularPower(x, 2, n);
             if (y == 1 && x != 1 && x != n - 1) {
                 return false;
             }
@@ -134,9 +134,9 @@ bool isPrime(unsigned long n) {
 /**
 Euclid's algorithm for finding the greatest common divisor of two numbers.
 **/
-unsigned long euclidGcd(unsigned long a, unsigned long b) {
+long euclidGcd(long a, long b) {
     while (b != 0) {
-        unsigned long t = b;
+        long t = b;
         b = a % b;
         a = t;
     }
@@ -147,7 +147,7 @@ unsigned long euclidGcd(unsigned long a, unsigned long b) {
 The pseudorandom function used in the Pollard Rho algorithm
 g(x) = (x^2 + c) % n
 **/
-unsigned long g(unsigned long x, unsigned long n, unsigned long c) {
+long g(long x, long n, long c) {
     return (modularMultiply(x, x, n) + c) % n;
 }
 
@@ -155,12 +155,12 @@ unsigned long g(unsigned long x, unsigned long n, unsigned long c) {
 Use the Pollard Rho algorithm to find a prime factor of a number. An output of -1 indicates failure.
 This algorithm uses the Brent Cycle Detection.
 **/
-unsigned long findPrime(unsigned long n) {
+long findPrime(long n) {
     if (n % 2 == 0) {
         return 2;
     }
-    unsigned long x = 2, c = 1, y = x, d = 1;
-    unsigned long power = 1, lam = 1;
+    long x = 2, c = 1, y = x, d = 1;
+    long power = 1, lam = 1;
 
     while (d == 1) {
         if (power == lam) {
@@ -185,10 +185,10 @@ unsigned long findPrime(unsigned long n) {
 Convert map where factors are keys and their exponents are values into
 an increasing order sorted vector of factors followed by their exponents.
 **/
-vector<unsigned long> orderedFactorsFromMap(unordered_map<unsigned long, unsigned long> &factorsMap) {
-    vector<unsigned long> factors;
+vector<long> orderedFactorsFromMap(unordered_map<long, long> &factorsMap) {
+    vector<long> factors;
     while (!factorsMap.empty()) {
-        unsigned long smallestFactor = factorsMap.begin()->first;
+        long smallestFactor = factorsMap.begin()->first;
         for (auto const &pair: factorsMap) {
             if (pair.first < smallestFactor) {
                 smallestFactor = pair.first;
@@ -201,24 +201,24 @@ vector<unsigned long> orderedFactorsFromMap(unordered_map<unsigned long, unsigne
     return factors;
 }
 
-vector<unsigned long> primesCache = {2, 3, 5};
+vector<long> primesCache = {2, 3, 5};
 bool cached = false;
-unsigned long start = 7;
-// unsigned long end = 347563;
-unsigned long end = 400000;
+long start = 7;
+// long end = 347563;
+long end = 500;
 
 /**
 Given a positive integer, return its prime factorization as a vector where each odd index is a prime factor and each
 even index is the exponent of that factor
 **/
-vector<unsigned long> factor(unsigned long n) {
-    unordered_map<unsigned long, unsigned long> factorsMap;
+vector<long> factor(long n) {
+    unordered_map<long, long> factorsMap;
     // Edge case: we are factoring 1, 1 * 1
     if (n == 1) {
-        return vector<unsigned long>({1, 1});
+        return vector<long>({1, 1});
     }
     if (!cached) {
-        for (unsigned long i = start; i <= end; i += 2) {
+        for (long i = start; i <= end; i += 2) {
             if (isPrime(i)) {
                 primesCache.push_back(i);
             }
@@ -226,7 +226,7 @@ vector<unsigned long> factor(unsigned long n) {
         cached = true;
     }
     // Step 1: Check for divisibility by small primes.
-    for (unsigned long prime: primesCache) {
+    for (long prime: primesCache) {
         if (n == 1) {
             break;
         }
@@ -250,12 +250,12 @@ vector<unsigned long> factor(unsigned long n) {
         return orderedFactorsFromMap(factorsMap);
     }
     // Edge case, the number is a perfect square
-    auto sqrtN = (unsigned long) sqrt(n);
+    auto sqrtN = (long) sqrt(n);
     if (sqrtN * sqrtN == n) {
-        return vector<unsigned long>({sqrtN, 2});
+        return vector<long>({sqrtN, 2});
     }
     // If it is not, use Pollard-Rho to find a prime factor, and then factor the smaller remaining number.
-    unsigned long primeFactor = findPrime(n);
+    long primeFactor = findPrime(n);
     while (n != 1 && primeFactor != -1) {
         if (factorsMap.find(primeFactor) != factorsMap.end()) {
             factorsMap[primeFactor] += 1;
@@ -277,13 +277,17 @@ vector<unsigned long> factor(unsigned long n) {
 /*
 Use Euler's Criterion to determine if a is a quadratic residue modulo P.
 */
-long quadraticResidue(long a, long p) {
+bool isQuadraticResidue(long a, long p) {
     // Special case for 2
     if (p == 2) {
         return true;
     }
-    a = (a % p + p) % p;
-    return modularPower(a, (p - 1) / 2, p);
+    long amodp = a % p;
+    if (amodp == 0) {
+        return true;
+    }
+    a = (amodp + p) % p;
+    return modularPower(a, (p - 1) / 2, p) == 1;
 }
 
 /*
@@ -291,7 +295,7 @@ Find a quadratic non-residue modulo P using Euler's Criterion
 */
 long findNonResidue(long p) {
     for (long z = 2; z < p; z++) {
-        if (quadraticResidue(z, p) != 1) {
+        if (!isQuadraticResidue(z, p)) {
             return z;
         }
     }
@@ -308,7 +312,7 @@ long findSquareRoot(long n, long p) {
         return n;
     }
     // No square root exists
-    if (quadraticResidue(n, p) != 1) {
+    if (isQuadraticResidue(n, p) != 1) {
         return -1;
     }
 
@@ -427,18 +431,19 @@ vector<long> quad_solve(long n, long a, long b, long c) {
 
     // simplify the quadratic by completing the square such that the quadratic
     // is in the form (x + h)^2 = k % n
-    long h = modularMultiply(b, a_inv, n) / 2 % n;
-    long k = (modularMultiply(modularMultiply(h, h, n), a, n) -
-              modularMultiply(c, a_inv, n)) %
-             n;
+    long h = modularMultiply(modularMultiply(b, a_inv, n), modularInverse(2, n), n);
+    long k = (modularMultiply(modularMultiply(h, h, n), a, n) - modularMultiply(c, a_inv, n)) % n;
+    if (k < 0) {
+        k += n;
+    }
 
-    vector<unsigned long> primeFactors = factor(n);
+    vector<long> primeFactors = factor(n);
     vector<long> residues, mods;
     for (int index = 0; index < primeFactors.size(); index += 2) {
         long p = primeFactors[index];
         long e = primeFactors[index + 1];
         long pe = pow(p, e);
-        if (quadraticResidue(k, pe) != 1) {
+        if (!isQuadraticResidue(k, p)) {
             return {};
         }
 
