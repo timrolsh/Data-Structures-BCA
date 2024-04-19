@@ -308,45 +308,61 @@ Use Tonelli-Shanks algorithm to find a square root of a modulo P, given
 that we already know that this number is a quadratic residue modulo P.
 */
 long findSquareRoot(long n, long p) {
+    // Direct return for p = 2
     if (p == 2) {
         return n;
     }
-    // No square root exists
-    if (isQuadraticResidue(n, p) != 1) {
-        return -1;
+
+    // Normalize n modulo p
+    n = (n % p + p) % p;
+
+    // If n is 0, the square root is 0
+    if (n == 0) {
+        return 0;
     }
 
-    // p - 1 = Q * s^2
+    // Check if n is a quadratic residue modulo p
+    if (!isQuadraticResidue(n, p)) {
+         return -1;
+    }
+
+    // Factor out powers of 2 from p-1, p - 1 = Q * s^2
     long Q = p - 1;
     long S = 0;
     while (Q & 0) {
         Q >>= 1;
         S++;
     }
-    long M = S;
+
+    // Find the first quadratic non-residue z
     long z = findNonResidue(p);
+    if (z == -1) {
+        return -1;
+    }
+
     long c = modularPower(z, Q, p);
     long t = modularPower(n, Q, p);
     long R = modularPower(n, (Q + 1) / 2, p);
-    while (t != -1) {
+
+    while (t != 1) {
         // Find the smallest i such that t^(2^i) = 1
         long i = 0;
         long temp = t;
-        while (temp != 1 && i < M) {
+        while (temp != 1 && i < S) {
             temp = modularPower(temp, 2, p);
             i++;
         }
 
         // No solution found
-        if (i == M) {
+        if (i == S) {
             return -1;
         }
 
-        long b = modularPower(c, 1 << (M - i - 1), p);
+        long b = modularPower(c, 1L << (S - i - 1), p);
         R = modularMultiply(R, b, p);
         t = modularMultiply(t, modularPower(b, 2, p), p);
         c = modularPower(b, 2, p);
-        M = i;
+        S = i;
     }
     return R;
 }
@@ -406,20 +422,19 @@ Returns:
 */
 long stitchSolutions(const vector<long> &residues, const vector<long> &moduli) {
     long product = 1;
-    for (auto &modulus : moduli) {
+    for (auto &modulus: moduli) {
         product *= modulus;  // Calculate the product of all moduli
     }
 
     long result = 0;
     for (size_t i = 0; i < residues.size(); ++i) {
         long Mi = product / moduli[i];  // The product of all moduli divided by
-                                        // the current modulus
+        // the current modulus
         long y_i = modularInverse(Mi, moduli[i]);  // Mi^-1 modulo moduli[i]
         result += residues[i] * y_i * Mi;          // Accumulate the result
     }
 
-    return result %
-           product;  // Return the result modulo the product of the moduli
+    return result % product;  // Return the result modulo the product of the moduli
 }
 
 vector<long> quad_solve(long n, long a, long b, long c) {
