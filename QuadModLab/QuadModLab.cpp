@@ -306,6 +306,7 @@ long findNonResidue(long p) {
 /*
 Use Tonelli-Shanks algorithm to find a square root of a modulo P, given
 that we already know that this number is a quadratic residue modulo P.
+Find x such that x^2 % p = n
 */
 long findSquareRoot(long n, long p) {
     // Direct return for p = 2
@@ -329,7 +330,7 @@ long findSquareRoot(long n, long p) {
     // Factor out powers of 2 from p-1, p - 1 = Q * s^2
     long Q = p - 1;
     long S = 0;
-    while (Q & 0) {
+    while (!(Q & 1)) {
         Q >>= 1;
         S++;
     }
@@ -458,21 +459,32 @@ vector<long> quad_solve(long n, long a, long b, long c) {
         long p = primeFactors[index];
         long e = primeFactors[index + 1];
         long pe = pow(p, e);
-        if (!isQuadraticResidue(k, p)) {
-            return {};
-        }
 
-        long rootModPe = findSquareRoot(k, p);
-        if (rootModPe == -1) {
+        // find sqrt(k) % p to then use it to solve the quadratic equation for modulo p
+        long sqrtKModP = findSquareRoot(k, p);
+        // this should be 2 by this point, and then after having 2, you should get 2 answers, -h +- sqrtKModP
+        if (sqrtKModP == -1) {
             return {};
         }
-        long root = liftSquareRoot(rootModPe, p, e, k);
-        if (root == -1) {
+        // get 2 positive solutions to the quadratic equation (x + h)^2 = k % p
+        long x1 = (-h + sqrtKModP + p) % p;
+        long x2 = (-h - sqrtKModP + p) % p;
+
+        // push these solutions to the list of residues and mods
+        long liftedx1 = liftSquareRoot(x1, p, e, k);
+        if (liftedx1 == -1) {
             return {};
         }
-        residues.push_back(root);
+        residues.push_back(liftedx1);
+        mods.push_back(pe);
+        long liftedx2 = liftSquareRoot(x2, p, e, k);
+        if (liftedx2 == -1) {
+            return {};
+        }
+        residues.push_back(liftedx2);
         mods.push_back(pe);
     }
+    // TODO conitnue debugging from here the stitch soluitons seems to not be working
     long solution = stitchSolutions(residues, mods);
     vector<long> solutions = {};
     // find complementary solution if it exists
