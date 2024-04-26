@@ -8,13 +8,25 @@ using std::unordered_map;
 using std::unordered_set;
 using std::min;
 
+// TODO delete after debugging
+#include <iostream>
+using std::cout;
+
+#include "QuadModLab.hpp"
+
 long modularMultiply(long a, long b, long m) {
     // Anything mod 0 is 1
     if (m == 1) {
         return 0;
     }
     long aModm = a % m;
+    while (aModm < 0) {
+        aModm += m;
+    }
     long bModm = b % m;
+    while (bModm < 0) {
+        bModm += m;
+    }
     long product = aModm * bModm;
     // Overflow check, perform sophisticated modular multiplication algorithm for large numbers that overflow.
     if (aModm != 0 && product / aModm != bModm) {
@@ -443,14 +455,16 @@ long stitchSolutions(const vector<long> &residues, const vector<long> &moduli) {
 vector<long> quad_solve(long n, long a, long b, long c) {
     // 'a' must be invertible modulo 'n'
     long a_inv = modularInverse(a, n);
-    if (a_inv == 0) {
+    long two_inv = modularInverse(2, n);
+    if (a_inv == 0 || two_inv == 0) {
         return {};
     }
 
     // simplify the quadratic by completing the square such that the quadratic
     // is in the form (x + h)^2 = k % n
-    long h = modularMultiply(modularMultiply(b, a_inv, n), modularInverse(2, n), n);
-    long k = (modularMultiply(modularMultiply(h, h, n), a, n) - modularMultiply(c, a_inv, n)) % n;
+    // TODO check with john that h and k are being generated correctly
+    long h = modularMultiply(two_inv, modularMultiply(a_inv, b, n), n);
+    long k = modularMultiply(-c, a_inv, n) + modularMultiply(h, h, n);
     if (k < 0) {
         k += n;
     }
@@ -466,8 +480,7 @@ vector<long> quad_solve(long n, long a, long b, long c) {
         // find sqrt(k) % p to then use it to solve the quadratic equation for modulo p
         long sqrtKModP = findSquareRoot(k, p);
         if (sqrtKModP == -1) {
-            primeFactors.erase(primeFactors.begin() + index, primeFactors.begin() + index + 2);
-            continue;
+            return {};;
         }
         // get 2 positive solutions to the quadratic equation (x + h)^2 = k % p
         long x1 = (-h + sqrtKModP + p) % p;
@@ -481,20 +494,19 @@ vector<long> quad_solve(long n, long a, long b, long c) {
 
         long liftedx1 = liftSquareRoot(x1, p, e, k);
         if (liftedx1 == -1) {
-            primeFactors.erase(primeFactors.begin() + index, primeFactors.begin() + index + 2);
-            continue;
+            return {};;
         }
 
         long liftedx2 = liftSquareRoot(x2, p, e, k);
         if (liftedx2 == -1) {
-            primeFactors.erase(primeFactors.begin() + index, primeFactors.begin() + index + 2);
-            continue;
+            return {};
         }
 
         solutions[pe] = {liftedx1, liftedx2};
         index += 2;
     }
     unordered_set<long> stitchedSolutions;
+    cout << solutions;
     for (unsigned int combination = 0; combination < pow(2, primeFactors.size() / 2); ++combination) {
 
         vector<long> residues = {};
@@ -515,8 +527,17 @@ vector<long> quad_solve(long n, long a, long b, long c) {
         residues.clear();
         mods.clear();
     }
-    return {stitchedSolutions.begin(), stitchedSolutions.end()};
-
-
+    vector<long> answer;
+    while (!stitchedSolutions.empty()) {
+        long smallestSolution = *stitchedSolutions.begin();
+        for (long solution : stitchedSolutions){
+            if (solution < smallestSolution) {
+                smallestSolution = solution;
+            }
+        }
+        answer.push_back(smallestSolution);
+        stitchedSolutions.erase(smallestSolution);
+    }
+    return answer;
 }
 
