@@ -1,9 +1,11 @@
 #include <vector>
 #include <unordered_map>
+#include <unordered_set>
 
 using std::pow;
 using std::vector;
 using std::unordered_map;
+using std::unordered_set;
 using std::min;
 
 long modularMultiply(long a, long b, long m) {
@@ -324,7 +326,7 @@ long findSquareRoot(long n, long p) {
 
     // Check if n is a quadratic residue modulo p
     if (!isQuadraticResidue(n, p)) {
-         return -1;
+        return -1;
     }
 
     // Factor out powers of 2 from p-1, p - 1 = Q * s^2
@@ -454,44 +456,67 @@ vector<long> quad_solve(long n, long a, long b, long c) {
     }
 
     vector<long> primeFactors = factor(n);
-    vector<long> residues, mods;
-    for (int index = 0; index < primeFactors.size(); index += 2) {
+    unordered_map<long, vector<long>> solutions;
+    for (int index = 0; index < primeFactors.size(); ) {
+
         long p = primeFactors[index];
         long e = primeFactors[index + 1];
-        long pe = pow(p, e);
+        long pe = (long) pow(p, e);
 
         // find sqrt(k) % p to then use it to solve the quadratic equation for modulo p
         long sqrtKModP = findSquareRoot(k, p);
-        // this should be 2 by this point, and then after having 2, you should get 2 answers, -h +- sqrtKModP
         if (sqrtKModP == -1) {
-            return {};
+            primeFactors.erase(primeFactors.begin() + index, primeFactors.begin() + index + 2);
+            continue;
         }
         // get 2 positive solutions to the quadratic equation (x + h)^2 = k % p
         long x1 = (-h + sqrtKModP + p) % p;
+        while (x1 < 0) {
+            x1 += p;
+        }
         long x2 = (-h - sqrtKModP + p) % p;
+        while (x2 < 0) {
+            x2 += p;
+        }
 
-        // push these solutions to the list of residues and mods
         long liftedx1 = liftSquareRoot(x1, p, e, k);
         if (liftedx1 == -1) {
-            return {};
+            primeFactors.erase(primeFactors.begin() + index, primeFactors.begin() + index + 2);
+            continue;
         }
-        residues.push_back(liftedx1);
-        mods.push_back(pe);
+
         long liftedx2 = liftSquareRoot(x2, p, e, k);
         if (liftedx2 == -1) {
-            return {};
+            primeFactors.erase(primeFactors.begin() + index, primeFactors.begin() + index + 2);
+            continue;
         }
-        residues.push_back(liftedx2);
-        mods.push_back(pe);
+
+        solutions[pe] = {liftedx1, liftedx2};
+        index += 2;
     }
-    // TODO conitnue debugging from here the stitch soluitons seems to not be working
-    long solution = stitchSolutions(residues, mods);
-    vector<long> solutions = {};
-    // find complementary solution if it exists
-    long cSolution = (n - solution) % n;
-    if (cSolution != solution) {
-        solutions.push_back(cSolution);
+    unordered_set<long> stitchedSolutions;
+    for (unsigned int combination = 0; combination < pow(2, primeFactors.size() / 2); ++combination) {
+
+        vector<long> residues = {};
+        vector<long> mods = {};
+        unsigned shiftCount = 0;
+        for (int primeIndex = 0; primeIndex < primeFactors.size(); primeIndex += 2) {
+            bool useSecond = (combination >> shiftCount++) & 1;
+            long pe = (long) pow(primeFactors[primeIndex], primeFactors[primeIndex + 1]);
+            if (useSecond) {
+                residues.push_back(solutions[pe][1]);
+                mods.push_back(pe);
+            } else {
+                residues.push_back(solutions[pe][0]);
+                mods.push_back(pe);
+            }
+        }
+        stitchedSolutions.insert(stitchSolutions(residues, mods));
+        residues.clear();
+        mods.clear();
     }
-    return solutions;
+    return {stitchedSolutions.begin(), stitchedSolutions.end()};
+
+
 }
 
