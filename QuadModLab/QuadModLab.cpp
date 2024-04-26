@@ -8,10 +8,6 @@ using std::unordered_map;
 using std::unordered_set;
 using std::min;
 
-// TODO delete after debugging
-#include <iostream>
-using std::cout;
-
 #include "QuadModLab.hpp"
 
 long modularMultiply(long a, long b, long m) {
@@ -394,7 +390,8 @@ Returns:
 - the lifted square root modulo p^e
  */
 long liftSquareRoot(long root, long p, long e, long k) {
-    long p_power = p;  // Start with p^1
+    // Start with p^1
+    long p_power = p;
     long lifted_root = root;
 
     for (long i = 1; i < e; ++i) {
@@ -403,11 +400,15 @@ long liftSquareRoot(long root, long p, long e, long k) {
 
         // Calculate f(root) = root^2 - k
         long f_root = (modularPower(lifted_root, 2, p_power) - k) % p_power;
-        if (f_root < 0) f_root += p_power;
+        if (f_root < 0) {
+            f_root += p_power;
+        }
 
         // If f(root) is divisible by the current power of p, then the root is
         // already lifted
-        if (f_root == 0) break;
+        if (f_root == 0) {
+            break;
+        }
 
         // Calculate the derivative f'(root) = 2 * root
         long f_prime_root = (2 * lifted_root) % p_power;
@@ -471,7 +472,7 @@ vector<long> quad_solve(long n, long a, long b, long c) {
 
     vector<long> primeFactors = factor(n);
     unordered_map<long, vector<long>> solutions;
-    for (int index = 0; index < primeFactors.size(); ) {
+    for (int index = 0; index < primeFactors.size();) {
 
         long p = primeFactors[index];
         long e = primeFactors[index + 1];
@@ -506,7 +507,6 @@ vector<long> quad_solve(long n, long a, long b, long c) {
         index += 2;
     }
     unordered_set<long> stitchedSolutions;
-    cout << solutions;
     for (unsigned int combination = 0; combination < pow(2, primeFactors.size() / 2); ++combination) {
 
         vector<long> residues = {};
@@ -530,7 +530,7 @@ vector<long> quad_solve(long n, long a, long b, long c) {
     vector<long> answer;
     while (!stitchedSolutions.empty()) {
         long smallestSolution = *stitchedSolutions.begin();
-        for (long solution : stitchedSolutions){
+        for (long solution: stitchedSolutions) {
             if (solution < smallestSolution) {
                 smallestSolution = solution;
             }
