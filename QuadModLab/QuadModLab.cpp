@@ -461,12 +461,12 @@ vector<long> quad_solve(long n, long a, long b, long c) {
         return {};
     }
 
-    // simplify the quadratic by completing the square such that the quadratic
-    // is in the form (x + h)^2 = k % n
-    // TODO check with john that h and k are being generated correctly
+    // simplify the quadratic by completing the square such that the quadratic is in the form (x + h)^2 = k % n
+    // h = b/2a done with modular arithmatic
     long h = modularMultiply(two_inv, modularMultiply(a_inv, b, n), n);
-    long k = modularMultiply(-c, a_inv, n) + modularMultiply(h, h, n);
-    if (k < 0) {
+    // k = -c/a + h^2 done with modular arithmatic
+    long k = ((modularMultiply(-c, a_inv, n) % n) + (modularMultiply(h, h, n) % n)) % n;
+    while (k < 0) {
         k += n;
     }
 
