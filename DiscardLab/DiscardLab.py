@@ -1,4 +1,8 @@
-import random
+"""
+Tim Rolshud
+Data Structures Period 1
+May 13th, 2024
+"""
 from enum import Enum
 
 
