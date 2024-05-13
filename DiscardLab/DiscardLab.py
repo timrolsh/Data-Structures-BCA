@@ -127,12 +127,12 @@ def get_hand_type(cards: list[Card]) -> HandType:
 
 def discard_cards(cards: list[Card]) -> None:
     type: HandType = get_hand_type(cards)
-    cards_count: dict[Card, int] = {}
+    ranks_count: dict[Rank, int] = {}
     for card in cards:
-        if card in cards_count:
-            cards_count[card] += 1
+        if card.rank in ranks_count:
+            ranks_count[card.rank] += 1
         else:
-            cards_count[card] = 1
+            ranks_count[card.rank] = 1
 
     # Have a full straight or better, keep all cards
     if (type.value >= 4):
@@ -140,19 +140,19 @@ def discard_cards(cards: list[Card]) -> None:
     elif type is HandType.THREE_OF_A_KIND:
         string: str = "2\n"
         for card in cards:
-            if cards_count[card] == 1:
+            if ranks_count[card.rank] == 1:
                 string += f"{card.encoded_card} "
         print(string)
     elif type is HandType.TWO_PAIR:
         string = "1\n"
         for card in cards:
-            if cards_count[card] == 1:
+            if ranks_count[card.rank] == 1:
                 string += f"{card.encoded_card} "
         print(string)
     elif type is HandType.ONE_PAIR:
         string = "3\n"
         for card in cards:
-            if cards_count[card] == 1:
+            if ranks_count[card.rank] == 1:
                 string += f"{card.encoded_card} "
         print(string)
     else:
@@ -160,7 +160,7 @@ def discard_cards(cards: list[Card]) -> None:
 
 
 def main() -> None:
-    # # Read all the cards from the 5 numbers on the the line given from stdin
+    # Read all the cards from the 5 numbers on the the line given from stdin
     cards: list[Card] = [Card(int(encoded_card)) for encoded_card in input().split(" ")]
     cards.sort()
     discard_cards(cards)
