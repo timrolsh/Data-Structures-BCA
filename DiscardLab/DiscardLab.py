@@ -48,7 +48,7 @@ class Card:
 
     def __repr__(self):
         return f'{self.rank.name} of {self.suit.name}'
-    
+
     def __lt__(self, other):
         # if self.rank.value < other.rank.value:
         #     return True
@@ -56,9 +56,10 @@ class Card:
         #     return True
         # return False
         return self.rank.value < other.rank.value
-    
+
     def __hash__(self) -> int:
         return self.encoded_card
+
 
 """
 Determine the type of hand you currently have given the 5 cards.
@@ -124,6 +125,7 @@ def get_hand_type(cards: list[Card]) -> HandType:
     else:
         return HandType.HIGH_CARD
 
+
 def discard_cards(cards: list[Card]) -> None:
     type: HandType = get_hand_type(cards)
     cards_count: dict[Card, int] = {}
@@ -132,7 +134,7 @@ def discard_cards(cards: list[Card]) -> None:
             cards_count[card] += 1
         else:
             cards_count[card] = 1
-            
+
     # Have a full straight or better, keep all cards
     if (type.value >= 4):
         print(0)
@@ -155,36 +157,14 @@ def discard_cards(cards: list[Card]) -> None:
                 string += f"{card.encoded_card} "
         print(string)
     else:
-        # TODO implement logic for high card
-        
-        
-    
+        print(f"3\n{cards[0].encoded_card} {cards[1].encoded_card} {cards[2].encoded_card}")
 
-
-
-def tester() -> None:
-    type = HandType.HIGH_CARD
-    while (type is not HandType.TWO_PAIR):
-        c = list(range(52))
-        random.shuffle(c)
-        cards = [Card(i) for i in c[:5]]
-        cards.sort()
-        type = get_hand_type(cards)
-        if type is HandType.TWO_PAIR:
-            print(cards)
-            print(type)
-    print("a")
-    
 
 def main() -> None:
     # # Read all the cards from the 5 numbers on the the line given from stdin
-    # cards: list[Card] = [Card(int(encoded_card)) for encoded_card in input().split(" ")].sort()
-
-    tester()
-    
-    
-
-
+    cards: list[Card] = [Card(int(encoded_card)) for encoded_card in input().split(" ")]
+    cards.sort()
+    discard_cards(cards)
 
 
 if __name__ == '__main__':
