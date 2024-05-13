@@ -54,11 +54,6 @@ class Card:
         return f'{self.rank.name} of {self.suit.name}'
 
     def __lt__(self, other):
-        # if self.rank.value < other.rank.value:
-        #     return True
-        # elif self.suit.value < other.suit.value:
-        #     return True
-        # return False
         return self.rank.value < other.rank.value
 
     def __hash__(self) -> int:
