@@ -79,7 +79,7 @@ def get_hand_type(cards: list[Card]) -> HandType:
         is_flush &= (cards[index].suit == first_suit)
 
         # Check for straight, and check for special case for ace-low straight
-        if ((cards[index].rank != prev_rank.value + 1) and (not (index == 4 and cards[index].rank == Rank.ACE and prev_rank == Rank.FIVE))):
+        if ((cards[index].rank.value != prev_rank.value + 1) and (not (index == 4 and cards[index].rank == Rank.ACE and prev_rank == Rank.FIVE))):
             is_straight = False
         prev_rank = cards[index].rank
 
@@ -142,19 +142,19 @@ def discard_cards(cards: list[Card]) -> None:
         for card in cards:
             if ranks_count[card.rank] == 1:
                 string += f"{card.encoded_card} "
-        print(string)
+        print(string[:-1])
     elif type is HandType.TWO_PAIR:
         string = "1\n"
         for card in cards:
             if ranks_count[card.rank] == 1:
                 string += f"{card.encoded_card} "
-        print(string)
+        print(string[:-1])
     elif type is HandType.ONE_PAIR:
         string = "3\n"
         for card in cards:
             if ranks_count[card.rank] == 1:
                 string += f"{card.encoded_card} "
-        print(string)
+        print(string[:-1])
     else:
         print(f"3\n{cards[0].encoded_card} {cards[1].encoded_card} {cards[2].encoded_card}")
 
@@ -165,6 +165,38 @@ def main() -> None:
     cards.sort()
     discard_cards(cards)
 
+
+import random
+
+def still_check(map):
+    for a in map:
+        if a == 0:
+            return True
+    return False
+
+
+def tester() -> None:
+    map: list[int] = [0 for _ in range(9)]
+    start_index: int = 0
+    hands_processed: int = 0
+    random_list: list[int] = list(range(52))
+    random.shuffle(random_list)
+    while still_check(map):
+        if start_index == 45:
+            random.shuffle(random_list)
+            start_index = 0
+        cards: list[Card] = [Card(encoded_card) for encoded_card in random_list[start_index:start_index + 5]]
+        cards.sort()
+        start_index += 5
+        try:
+            discard_cards(cards)
+        except:
+            print("Error thrown, process stopped")
+            print(cards)
+            break
+        hands_processed += 1
+        map[get_hand_type(cards).value] += 1
+        print(map)
 
 if __name__ == '__main__':
     main()
