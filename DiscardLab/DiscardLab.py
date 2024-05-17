@@ -138,25 +138,25 @@ def discard_cards(cards: list[Card]) -> None:
     if (type.value >= 4):
         print(0)
     elif type is HandType.THREE_OF_A_KIND:
-        string: str = "2\n"
+        string: str = "2 "
         for card in cards:
             if ranks_count[card.rank] == 1:
-                string += f"{card.encoded_card} "
-        print(string[:-1])
+                string += f" {card.encoded_card}"
+        print(string)
     elif type is HandType.TWO_PAIR:
-        string = "1\n"
+        string = "1"
         for card in cards:
             if ranks_count[card.rank] == 1:
-                string += f"{card.encoded_card} "
-        print(string[:-1])
+                string += f" {card.encoded_card}"
+        print(string)
     elif type is HandType.ONE_PAIR:
-        string = "3\n"
+        string = "3 "
         for card in cards:
             if ranks_count[card.rank] == 1:
-                string += f"{card.encoded_card} "
-        print(string[:-1])
+                string += f" {card.encoded_card}"
+        print(string)
     else:
-        print(f"3\n{cards[0].encoded_card} {cards[1].encoded_card} {cards[2].encoded_card}")
+        print(f"3 {cards[0].encoded_card} {cards[1].encoded_card} {cards[2].encoded_card}")
 
 
 def main() -> None:
@@ -179,13 +179,13 @@ def tester() -> None:
     map: list[int] = [0 for _ in range(9)]
     start_index: int = 0
     hands_processed: int = 0
-    random_list: list[int] = list(range(52))
-    random.shuffle(random_list)
+    deck: list[int] = list(range(52))
+    random.shuffle(deck)
     while still_check(map):
         if start_index == 45:
-            random.shuffle(random_list)
+            random.shuffle(deck)
             start_index = 0
-        cards: list[Card] = [Card(encoded_card) for encoded_card in random_list[start_index:start_index + 5]]
+        cards: list[Card] = [Card(encoded_card) for encoded_card in deck[start_index:start_index + 5]]
         cards.sort()
         start_index += 5
         try:
