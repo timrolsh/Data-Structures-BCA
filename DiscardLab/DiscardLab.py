@@ -160,8 +160,10 @@ def discard_cards(cards: list[Card]) -> None:
 
 
 def main() -> None:
-    # Read all the cards from the 5 numbers on the the line given from stdin
-    cards: list[Card] = [Card(int(encoded_card)) for encoded_card in input().split(" ")]
+    # Read all the cards from the 5 numbers given line by line
+    cards: list[Card] = []
+    for _ in range(5):
+        cards.append(Card(int(input())))
     cards.sort()
     discard_cards(cards)
 
